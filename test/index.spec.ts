@@ -13,6 +13,10 @@ async function readSvg(response: Response): Promise<string> {
 	return new TextDecoder().decode(await response.arrayBuffer());
 }
 
+async function readJson(response: Response): Promise<Record<string, unknown>> {
+	return response.json();
+}
+
 describe("avatar worker", () => {
 	it("serves the favicon as a static asset", async () => {
 		const response = await SELF.fetch("https://avatar.aspekt.systems/favicon.ico");
@@ -22,6 +26,40 @@ describe("avatar worker", () => {
 		expect(response.headers.get("Content-Type")).toContain("image/");
 		expect(response.headers.get("Content-Type")).not.toContain("svg");
 		expect(body.byteLength).toBeGreaterThan(1000);
+	});
+
+	it("serves API docs as JSON", async () => {
+		const response = await SELF.fetch("https://avatar.aspekt.systems/docs.json?aspekt=docs");
+		const docs = await readJson(response);
+		const variants = docs.variants as Array<{ name: string }>;
+		const queryParameters = docs.query_parameters as Record<string, unknown>;
+		const examples = docs.examples as string[];
+
+		expect(response.status).toBe(200);
+		expect(response.headers.get("Content-Type")).toBe("application/json; charset=utf-8");
+		expect(response.headers.get("Cache-Control")).toBe("public, max-age=3600");
+		expect(docs.name).toBe("Aspekt Avatar API");
+		expect(docs.base_url).toBe("https://avatar.aspekt.systems");
+		expect(docs.docs).toBe("https://avatar.aspekt.systems/docs.json?aspekt=docs");
+		expect(variants.map((variant) => variant.name)).toEqual(["solid", "gradient", "grid"]);
+		expect(queryParameters).toHaveProperty("size");
+		expect(queryParameters).toHaveProperty("radius");
+		expect(queryParameters).toHaveProperty("initials");
+		expect(examples).toContain("https://avatar.aspekt.systems/gradient/nova-river?size=256&radius=full");
+	});
+
+	it("keeps docs-looking URLs available as avatar seeds", async () => {
+		const docsResponse = await SELF.fetch("https://avatar.aspekt.systems/docs");
+		const docsSvg = await readSvg(docsResponse);
+		const docsJsonResponse = await SELF.fetch("https://avatar.aspekt.systems/docs.json");
+		const docsJsonSvg = await readSvg(docsJsonResponse);
+
+		expect(docsResponse.status).toBe(200);
+		expect(docsResponse.headers.get("Content-Type")).toBe("image/svg+xml; charset=utf-8");
+		expect(docsSvg).toContain('aria-label="docs"');
+		expect(docsJsonResponse.status).toBe(200);
+		expect(docsJsonResponse.headers.get("Content-Type")).toBe("image/svg+xml; charset=utf-8");
+		expect(docsJsonSvg).toContain('aria-label="docs.json"');
 	});
 
 	it("keeps legacy username URLs as solid avatars with initials", async () => {
@@ -36,6 +74,7 @@ describe("avatar worker", () => {
 		expect(response.headers.get("Cache-Control")).toBe("public, max-age=31536000, immutable");
 		expect(svg).toContain('role="img"');
 		expect(svg).toContain('aria-label="mira-slate"');
+		expect(svg).toContain("<title>mira-slate (128x128)</title>");
 		expect(svg).toContain('rx="0"');
 		expect(svg).toContain(">MS</text>");
 		expect(svg).not.toContain("<linearGradient");
@@ -48,6 +87,7 @@ describe("avatar worker", () => {
 		const svg = await readSvg(response);
 
 		expect(svg).toContain('aria-label="nova-river"');
+		expect(svg).toContain("<title>nova-river (128x128)</title>");
 		expect(svg).toContain("<filter");
 		expect(svg).toContain("<feGaussianBlur");
 		expect(svg).toContain("<path");
@@ -104,6 +144,7 @@ describe("avatar worker", () => {
 
 		expect(svg).toContain('width="512"');
 		expect(svg).toContain('height="512"');
+		expect(svg).toContain("<title>pixel-vale (512x512)</title>");
 		expect(svg).toContain('rx="256"');
 		expect(svg).toContain(">PV</text>");
 	});

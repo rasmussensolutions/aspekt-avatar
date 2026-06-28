@@ -45,6 +45,10 @@ export default {
 	async fetch(request: Request): Promise<Response> {
 		const url = new URL(request.url);
 
+		if (isDocsRoute(url)) {
+			return createDocsResponse(url.origin);
+		}
+
 		const route = readRoute(url.pathname);
 		const size = readSize(url.searchParams.get('size'));
 		const radius = readRadius(url.searchParams.get('radius'), size);
@@ -68,6 +72,88 @@ export default {
 	},
 } satisfies ExportedHandler<Env>;
 
+function createDocsResponse(origin: string): Response {
+	const docs = {
+		name: 'Aspekt Avatar API',
+		description: 'Generate deterministic SVG avatars from a URL seed.',
+		base_url: origin,
+		response_type: 'image/svg+xml; charset=utf-8',
+		docs: `${origin}/docs.json?aspekt=docs`,
+		endpoints: [
+			{
+				method: 'GET',
+				path: '/:seed',
+				description: 'Generate the default solid avatar for a seed. Initials are shown by default on legacy seed URLs.',
+				example: `${origin}/mira-slate`,
+			},
+			{
+				method: 'GET',
+				path: '/:variant/:seed',
+				description: 'Generate an avatar with an explicit variant. Initials are hidden by default unless the initials query parameter is enabled.',
+				example: `${origin}/gradient/nova-river?size=256&radius=full&initials=true`,
+			},
+		],
+		variants: [
+			{
+				name: 'solid',
+				description: 'Flat background color with optional initials.',
+				default_for_legacy_seed_urls: true,
+			},
+			{
+				name: 'gradient',
+				description: 'Soft abstract gradient shapes generated from the seed.',
+			},
+			{
+				name: 'grid',
+				description: 'Seeded 8 by 8 tile pattern.',
+			},
+		],
+		query_parameters: {
+			size: {
+				type: 'integer',
+				default: 128,
+				min: 32,
+				max: 512,
+				behavior: 'Values are rounded to the nearest integer and clamped to the allowed range.',
+				example: 'size=256',
+			},
+			radius: {
+				type: 'integer | "full" | "none"',
+				default: 0,
+				min: 0,
+				max: 'size / 2',
+				behavior: '"full" makes the avatar circular; "none" and invalid values use square corners.',
+				example: 'radius=full',
+			},
+			initials: {
+				type: 'boolean flag',
+				defaults: {
+					legacy_seed_url: true,
+					explicit_variant_url: false,
+				},
+				true_values: ['', '1', 'true', 'yes', 'on'],
+				false_values: ['0', 'false', 'no', 'off'],
+				behavior: 'Unknown values are treated as true.',
+				example: 'initials=true',
+			},
+		},
+		examples: [
+			`${origin}/mira-slate`,
+			`${origin}/solid/nova-river?initials=false`,
+			`${origin}/gradient/nova-river?size=256&radius=full`,
+			`${origin}/grid/nova-river?initials`,
+		],
+	} as const;
+
+	return new Response(JSON.stringify(docs, null, 2), {
+		headers: {
+			'Content-Type': 'application/json; charset=utf-8',
+			'Cache-Control': 'public, max-age=3600',
+			'X-Content-Type-Options': 'nosniff',
+		},
+	});
+}
+
 function createAvatarSvg(options: {
 	seed: string;
 	size: number;
@@ -81,6 +167,7 @@ function createAvatarSvg(options: {
 	const id = `avatar-${variant}-${hash.toString(36)}-${size}-${Math.round(radius)}`;
 	const paint = createPaint(variant, size, hash, id);
 	const initials = getInitials(seed);
+	const title = `${seed} (${size}x${size})`;
 	const fontSize = Math.round(size * 0.36);
 	const y = Math.round(size * 0.53);
 	const textOverlay =
@@ -102,6 +189,7 @@ function createAvatarSvg(options: {
 
 	return `
 <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${escapeXml(seed)}">
+  <title>${escapeXml(title)}</title>
   <defs>
     ${paint.defs}
     <clipPath id="${id}-clip">
@@ -189,6 +277,12 @@ function createGridPaint(size: number, hash: number): { background: string; fore
     ${cells.join('\n    ')}
   </g>`.trim(),
 	};
+}
+
+function isDocsRoute(url: URL): boolean {
+	const path = url.pathname.replace(/\/+$/, '') || '/';
+
+	return path === '/docs.json' && url.searchParams.get('aspekt') === 'docs';
 }
 
 function readRoute(pathname: string): { seed: string; variant: Variant; hasExplicitVariant: boolean } {
