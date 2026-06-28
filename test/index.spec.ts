@@ -141,13 +141,15 @@ describe("avatar worker", () => {
 		expect(svg).toContain("glass-glow");
 		expect(svg).toContain("glass-depth");
 		expect(svg).toContain("glass-border");
-		expect(svg).toContain("glass-inner");
 		expect(svg).toContain('stop-opacity="0.88"');
 		expect(svg).toContain('stop-opacity="0.86"');
-		expect(svg).toContain('stop-opacity="0.58"');
+		expect(svg).toContain('stop-opacity="0.3"');
 		expect(svg).toContain('stop-opacity="0.98"');
 		expect(svg).toContain('fill="none" stroke="url(#avatar-glass-');
-		expect(svg).toContain('rx="61"');
+		expect(svg.match(/stroke="url\(#avatar-glass-/g)).toHaveLength(1);
+		expect(svg).toContain('stroke-width="3"');
+		expect(svg).toContain('rx="62.5"');
+		expect(svg).not.toContain("glass-inner");
 		expect(svg).not.toContain("glass-flare");
 		expect(svg).not.toContain("glass-streak");
 		expect(svg).not.toContain("<polygon");

@@ -364,21 +364,18 @@ function createGlassPaint(
 	radius: number,
 ): { background: string; foreground: string; defs: string; layers: string } {
 	const gradient = createGradientPaint(size, hash, id);
-	const borderWidth = Math.max(2, Math.round(size * 0.045));
+	const borderWidth = Math.max(1, Math.round(size * 0.024));
 	const borderInset = borderWidth / 2;
 	const borderRadius = Math.max(0, radius - borderInset);
-	const innerBorderWidth = Math.max(1, Math.round(size * 0.018));
-	const innerInset = borderWidth + innerBorderWidth / 2;
-	const innerRadius = Math.max(0, radius - innerInset);
 
 	return {
 		background: gradient.background,
 		foreground: gradient.foreground,
 		defs: `${gradient.defs}
     <linearGradient id="${id}-glass-shade" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#000000" stop-opacity="0.22"/>
-      <stop offset="50%" stop-color="#000000" stop-opacity="0.38"/>
-      <stop offset="100%" stop-color="#000000" stop-opacity="0.58"/>
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.1"/>
+      <stop offset="50%" stop-color="#000000" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.3"/>
     </linearGradient>
     <linearGradient id="${id}-glass-sheen" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.88"/>
@@ -404,19 +401,13 @@ function createGlassPaint(
       <stop offset="24%" stop-color="#FFFFFF" stop-opacity="0.82"/>
       <stop offset="58%" stop-color="#FFFFFF" stop-opacity="0.3"/>
       <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.08"/>
-    </linearGradient>
-    <linearGradient id="${id}-glass-inner" x1="0" y1="0" x2="${size}" y2="${size}" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.62"/>
-      <stop offset="35%" stop-color="#FFFFFF" stop-opacity="0.2"/>
-      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
     </linearGradient>`,
 		layers: `${gradient.layers}
     <rect width="${size}" height="${size}" fill="url(#${id}-glass-shade)"/>
     <rect width="${size}" height="${size}" fill="url(#${id}-glass-sheen)"/>
     <rect width="${size}" height="${size}" fill="url(#${id}-glass-glow)"/>
     <rect width="${size}" height="${size}" fill="url(#${id}-glass-depth)"/>
-    <rect x="${borderInset}" y="${borderInset}" width="${size - borderWidth}" height="${size - borderWidth}" rx="${borderRadius}" fill="none" stroke="url(#${id}-glass-border)" stroke-width="${borderWidth}"/>
-    <rect x="${innerInset}" y="${innerInset}" width="${size - innerInset * 2}" height="${size - innerInset * 2}" rx="${innerRadius}" fill="none" stroke="url(#${id}-glass-inner)" stroke-width="${innerBorderWidth}"/>`,
+    <rect x="${borderInset}" y="${borderInset}" width="${size - borderWidth}" height="${size - borderWidth}" rx="${borderRadius}" fill="none" stroke="url(#${id}-glass-border)" stroke-width="${borderWidth}"/>`,
 	};
 }
 
