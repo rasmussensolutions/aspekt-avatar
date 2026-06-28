@@ -34,19 +34,37 @@ describe("avatar worker", () => {
 		const variants = docs.variants as Array<{ name: string }>;
 		const queryParameters = docs.query_parameters as Record<string, unknown>;
 		const examples = docs.examples as string[];
+		const browserPreview = docs.browser_preview as { response_type: string };
 
 		expect(response.status).toBe(200);
 		expect(response.headers.get("Content-Type")).toBe("application/json; charset=utf-8");
 		expect(response.headers.get("Cache-Control")).toBe("public, max-age=3600");
 		expect(docs.name).toBe("Aspekt Avatar API");
 		expect(docs.base_url).toBe("https://avatar.aspekt.systems");
+		expect(browserPreview.response_type).toBe("text/html; charset=utf-8");
 		expect(docs.docs).toBe("https://avatar.aspekt.systems/docs.json?aspekt=docs");
-		expect(variants.map((variant) => variant.name)).toEqual(["solid", "gradient", "grid", "triangles"]);
+		expect(variants.map((variant) => variant.name)).toEqual(["gradient", "glass", "solid", "grid", "triangles"]);
 		expect(queryParameters).toHaveProperty("size");
 		expect(queryParameters).toHaveProperty("radius");
 		expect(queryParameters).toHaveProperty("initials");
 		expect(examples).toContain("https://avatar.aspekt.systems/gradient/nova-river?size=256&radius=full");
+		expect(examples).toContain("https://avatar.aspekt.systems/glass/nova-river?size=256&radius=full");
 		expect(examples).toContain("https://avatar.aspekt.systems/triangles/nova-river?size=256&radius=full");
+	});
+
+	it("serves a centered dark HTML preview for browser tab requests", async () => {
+		const response = await SELF.fetch("https://avatar.aspekt.systems/glass/nova-river?size=256&radius=full", {
+			headers: { Accept: "text/html" },
+		});
+		const html = await response.text();
+
+		expect(response.headers.get("Content-Type")).toBe("text/html; charset=utf-8");
+		expect(response.headers.get("Vary")).toBe("Accept, Sec-Fetch-Dest");
+		expect(html).toContain("background: #111111");
+		expect(html).toContain("place-items: center");
+		expect(html).toContain("width: min(256px, calc(100vmin - 48px))");
+		expect(html).toContain("<svg");
+		expect(html).toContain('aria-label="nova-river"');
 	});
 
 	it("keeps docs-looking URLs available as avatar seeds", async () => {
@@ -63,7 +81,7 @@ describe("avatar worker", () => {
 		expect(docsJsonSvg).toContain('aria-label="docs.json"');
 	});
 
-	it("keeps legacy username URLs as solid avatars with initials", async () => {
+	it("uses gradient avatars without initials for seed-only URLs", async () => {
 		const request = new IncomingRequest("https://avatar.aspekt.systems/mira-slate");
 		const ctx = createExecutionContext();
 		const response = await worker.fetch(request, env, ctx);
@@ -77,10 +95,20 @@ describe("avatar worker", () => {
 		expect(svg).toContain('aria-label="mira-slate"');
 		expect(svg).toContain("<title>mira-slate (128x128)</title>");
 		expect(svg).toContain('rx="0"');
-		expect(svg).toContain(">MS</text>");
+		expect(svg).toContain("<filter");
+		expect(svg).toContain("<feGaussianBlur");
+		expect(svg).toContain("<path");
 		expect(svg).not.toContain("<linearGradient");
 		expect(svg).not.toContain("<circle");
-		expect(svg).not.toContain("<path");
+		expect(svg).not.toContain("<text");
+	});
+
+	it("adds initials to seed-only URLs when requested", async () => {
+		const response = await SELF.fetch("https://avatar.aspekt.systems/mira-slate?initials");
+		const svg = await readSvg(response);
+
+		expect(svg).toContain("<filter");
+		expect(svg).toContain(">MS</text>");
 	});
 
 	it("supports gradient variant URLs without initials by default", async () => {
@@ -96,6 +124,33 @@ describe("avatar worker", () => {
 		expect(svg).toContain('rx="0"');
 		expect(svg).not.toContain("<linearGradient");
 		expect(svg).not.toContain("<radialGradient");
+		expect(svg).not.toContain("<text");
+	});
+
+	it("supports glass variant URLs as glossy gradient avatars", async () => {
+		const response = await SELF.fetch("https://avatar.aspekt.systems/glass/nova-river?radius=full");
+		const svg = await readSvg(response);
+
+		expect(svg).toContain('aria-label="nova-river"');
+		expect(svg).toContain("<filter");
+		expect(svg).toContain("<path");
+		expect(svg).toContain("<linearGradient");
+		expect(svg).toContain("<radialGradient");
+		expect(svg).toContain("glass-shade");
+		expect(svg).toContain("glass-sheen");
+		expect(svg).toContain("glass-glow");
+		expect(svg).toContain("glass-depth");
+		expect(svg).toContain("glass-border");
+		expect(svg).toContain("glass-inner");
+		expect(svg).toContain('stop-opacity="0.88"');
+		expect(svg).toContain('stop-opacity="0.86"');
+		expect(svg).toContain('stop-opacity="0.58"');
+		expect(svg).toContain('stop-opacity="0.98"');
+		expect(svg).toContain('fill="none" stroke="url(#avatar-glass-');
+		expect(svg).toContain('rx="61"');
+		expect(svg).not.toContain("glass-flare");
+		expect(svg).not.toContain("glass-streak");
+		expect(svg).not.toContain("<polygon");
 		expect(svg).not.toContain("<text");
 	});
 

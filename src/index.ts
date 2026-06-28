@@ -1,4 +1,4 @@
-type Variant = 'gradient' | 'grid' | 'solid' | 'triangles';
+type Variant = 'glass' | 'gradient' | 'grid' | 'solid' | 'triangles';
 
 type SolidPalette = {
 	background: string;
@@ -19,7 +19,7 @@ type TrianglePalette = {
 	foreground: string;
 };
 
-const variants = ['gradient', 'grid', 'solid', 'triangles'] as const satisfies readonly Variant[];
+const variants = ['glass', 'gradient', 'grid', 'solid', 'triangles'] as const satisfies readonly Variant[];
 
 const solidPalettes = [
 	{ background: '#E7C269', foreground: '#6F4700', accent: '#F2B94B' },
@@ -68,7 +68,7 @@ export default {
 		const route = readRoute(url.pathname);
 		const size = readSize(url.searchParams.get('size'));
 		const radius = readRadius(url.searchParams.get('radius'), size);
-		const showInitials = readInitials(url.searchParams, !route.hasExplicitVariant);
+		const showInitials = readInitials(url.searchParams, false);
 
 		const svg = createAvatarSvg({
 			seed: route.seed,
@@ -78,15 +78,81 @@ export default {
 			showInitials,
 		});
 
+		if (shouldRenderPreview(request)) {
+			return createPreviewResponse({
+				seed: route.seed,
+				size,
+				svg,
+			});
+		}
+
 		return new Response(svg, {
 			headers: {
 				'Content-Type': 'image/svg+xml; charset=utf-8',
 				'Cache-Control': 'public, max-age=31536000, immutable',
 				'X-Content-Type-Options': 'nosniff',
+				'Vary': 'Accept, Sec-Fetch-Dest',
 			},
 		});
 	},
 } satisfies ExportedHandler<Env>;
+
+function createPreviewResponse(options: { seed: string; size: number; svg: string }): Response {
+	const { seed, size, svg } = options;
+	const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${escapeXml(seed)} avatar preview</title>
+  <style>
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+      background: #111111;
+    }
+
+    body {
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+
+    svg {
+      display: block;
+      width: min(${size}px, calc(100vmin - 48px));
+      max-width: 100%;
+      height: auto;
+      filter: drop-shadow(0 24px 64px rgb(0 0 0 / 48%));
+    }
+  </style>
+</head>
+<body>
+  ${svg}
+</body>
+</html>`;
+
+	return new Response(html, {
+		headers: {
+			'Content-Type': 'text/html; charset=utf-8',
+			'Cache-Control': 'public, max-age=31536000, immutable',
+			'X-Content-Type-Options': 'nosniff',
+			'Vary': 'Accept, Sec-Fetch-Dest',
+		},
+	});
+}
+
+function shouldRenderPreview(request: Request): boolean {
+	const destination = request.headers.get('Sec-Fetch-Dest')?.toLowerCase();
+
+	if (destination === 'document') return true;
+	if (destination && destination !== 'empty') return false;
+
+	return request.headers.get('Accept')?.toLowerCase().includes('text/html') ?? false;
+}
 
 function createDocsResponse(origin: string): Response {
 	const docs = {
@@ -94,12 +160,16 @@ function createDocsResponse(origin: string): Response {
 		description: 'Generate deterministic SVG avatars from a URL seed.',
 		base_url: origin,
 		response_type: 'image/svg+xml; charset=utf-8',
+		browser_preview: {
+			response_type: 'text/html; charset=utf-8',
+			behavior: 'Browser document requests receive a centered preview page. Image and API requests receive raw SVG.',
+		},
 		docs: `${origin}/docs.json?aspekt=docs`,
 		endpoints: [
 			{
 				method: 'GET',
 				path: '/:seed',
-				description: 'Generate the default solid avatar for a seed. Initials are shown by default on legacy seed URLs.',
+				description: 'Generate the default gradient avatar for a seed. Initials are hidden by default unless the initials query parameter is enabled.',
 				example: `${origin}/mira-slate`,
 			},
 			{
@@ -111,13 +181,17 @@ function createDocsResponse(origin: string): Response {
 		],
 		variants: [
 			{
-				name: 'solid',
-				description: 'Flat background color with optional initials.',
-				default_for_legacy_seed_urls: true,
-			},
-			{
 				name: 'gradient',
 				description: 'Soft abstract gradient shapes generated from the seed.',
+				default_for_seed_urls: true,
+			},
+			{
+				name: 'glass',
+				description: 'Glossy gradient avatar with a diagonal sheen and reflective border.',
+			},
+			{
+				name: 'solid',
+				description: 'Flat background color with optional initials.',
 			},
 			{
 				name: 'grid',
@@ -148,7 +222,7 @@ function createDocsResponse(origin: string): Response {
 			initials: {
 				type: 'boolean flag',
 				defaults: {
-					legacy_seed_url: true,
+					seed_url: false,
 					explicit_variant_url: false,
 				},
 				true_values: ['', '1', 'true', 'yes', 'on'],
@@ -159,8 +233,9 @@ function createDocsResponse(origin: string): Response {
 		},
 		examples: [
 			`${origin}/mira-slate`,
-			`${origin}/solid/nova-river?initials=false`,
+			`${origin}/solid/nova-river`,
 			`${origin}/gradient/nova-river?size=256&radius=full`,
+			`${origin}/glass/nova-river?size=256&radius=full`,
 			`${origin}/grid/nova-river?initials`,
 			`${origin}/triangles/nova-river?size=256&radius=full`,
 		],
@@ -186,7 +261,7 @@ function createAvatarSvg(options: {
 
 	const hash = hashString(seed);
 	const id = `avatar-${variant}-${hash.toString(36)}-${size}-${Math.round(radius)}`;
-	const paint = createPaint(variant, size, hash, id);
+	const paint = createPaint(variant, size, hash, id, radius);
 	const initials = getInitials(seed);
 	const title = `${seed} (${size}x${size})`;
 	const fontSize = Math.round(size * 0.36);
@@ -231,8 +306,11 @@ function createPaint(
 	size: number,
 	hash: number,
 	id: string,
+	radius: number,
 ): { background: string; foreground: string; defs: string; layers: string } {
 	switch (variant) {
+		case 'glass':
+			return createGlassPaint(size, hash, id, radius);
 		case 'gradient':
 			return createGradientPaint(size, hash, id);
 		case 'grid':
@@ -276,6 +354,69 @@ function createGradientPaint(size: number, hash: number, id: string): { backgrou
     <path filter="url(#${id}-blur)" d="M32.414 59.35L50.376 70.5H72.5v-71H33.728L26.5 13.381l19.057 27.08L32.414 59.35z" fill="${palette.primary}" transform="translate(${firstX} ${firstY}) rotate(${firstRotation} 40 40) scale(1.2)"/>
     <path filter="url(#${id}-blur)" d="M22.216 24L0 46.75l14.108 38.129L78 86l-3.081-59.276-22.378 4.005 12.972 20.186-23.35 27.395L22.216 24z" fill="${palette.secondary}" transform="translate(${secondX} ${secondY}) rotate(${secondRotation} 40 40) scale(1.2)" style="mix-blend-mode: overlay"/>
   </g>`.trim(),
+	};
+}
+
+function createGlassPaint(
+	size: number,
+	hash: number,
+	id: string,
+	radius: number,
+): { background: string; foreground: string; defs: string; layers: string } {
+	const gradient = createGradientPaint(size, hash, id);
+	const borderWidth = Math.max(2, Math.round(size * 0.045));
+	const borderInset = borderWidth / 2;
+	const borderRadius = Math.max(0, radius - borderInset);
+	const innerBorderWidth = Math.max(1, Math.round(size * 0.018));
+	const innerInset = borderWidth + innerBorderWidth / 2;
+	const innerRadius = Math.max(0, radius - innerInset);
+
+	return {
+		background: gradient.background,
+		foreground: gradient.foreground,
+		defs: `${gradient.defs}
+    <linearGradient id="${id}-glass-shade" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.22"/>
+      <stop offset="50%" stop-color="#000000" stop-opacity="0.38"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.58"/>
+    </linearGradient>
+    <linearGradient id="${id}-glass-sheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.88"/>
+      <stop offset="28%" stop-color="#FFFFFF" stop-opacity="0.48"/>
+      <stop offset="62%" stop-color="#FFFFFF" stop-opacity="0.16"/>
+      <stop offset="84%" stop-color="#FFFFFF" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="${id}-glass-glow" cx="12%" cy="10%" r="94%" fx="4%" fy="4%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.86"/>
+      <stop offset="24%" stop-color="#FFFFFF" stop-opacity="0.5"/>
+      <stop offset="55%" stop-color="#FFFFFF" stop-opacity="0.18"/>
+      <stop offset="82%" stop-color="#FFFFFF" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="${id}-glass-depth" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="58%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.14"/>
+    </linearGradient>
+    <linearGradient id="${id}-glass-border" x1="0" y1="0" x2="${size}" y2="${size}" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.98"/>
+      <stop offset="24%" stop-color="#FFFFFF" stop-opacity="0.82"/>
+      <stop offset="58%" stop-color="#FFFFFF" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.08"/>
+    </linearGradient>
+    <linearGradient id="${id}-glass-inner" x1="0" y1="0" x2="${size}" y2="${size}" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.62"/>
+      <stop offset="35%" stop-color="#FFFFFF" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>`,
+		layers: `${gradient.layers}
+    <rect width="${size}" height="${size}" fill="url(#${id}-glass-shade)"/>
+    <rect width="${size}" height="${size}" fill="url(#${id}-glass-sheen)"/>
+    <rect width="${size}" height="${size}" fill="url(#${id}-glass-glow)"/>
+    <rect width="${size}" height="${size}" fill="url(#${id}-glass-depth)"/>
+    <rect x="${borderInset}" y="${borderInset}" width="${size - borderWidth}" height="${size - borderWidth}" rx="${borderRadius}" fill="none" stroke="url(#${id}-glass-border)" stroke-width="${borderWidth}"/>
+    <rect x="${innerInset}" y="${innerInset}" width="${size - innerInset * 2}" height="${size - innerInset * 2}" rx="${innerRadius}" fill="none" stroke="url(#${id}-glass-inner)" stroke-width="${innerBorderWidth}"/>`,
 	};
 }
 
@@ -374,7 +515,7 @@ function readRoute(pathname: string): { seed: string; variant: Variant; hasExpli
 
 	return {
 		seed: seedParts.join('/').trim() || 'aspekt',
-		variant: hasExplicitVariant ? first : 'solid',
+		variant: hasExplicitVariant ? first : 'gradient',
 		hasExplicitVariant,
 	};
 }
