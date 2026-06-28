@@ -41,11 +41,12 @@ describe("avatar worker", () => {
 		expect(docs.name).toBe("Aspekt Avatar API");
 		expect(docs.base_url).toBe("https://avatar.aspekt.systems");
 		expect(docs.docs).toBe("https://avatar.aspekt.systems/docs.json?aspekt=docs");
-		expect(variants.map((variant) => variant.name)).toEqual(["solid", "gradient", "grid"]);
+		expect(variants.map((variant) => variant.name)).toEqual(["solid", "gradient", "grid", "triangles"]);
 		expect(queryParameters).toHaveProperty("size");
 		expect(queryParameters).toHaveProperty("radius");
 		expect(queryParameters).toHaveProperty("initials");
 		expect(examples).toContain("https://avatar.aspekt.systems/gradient/nova-river?size=256&radius=full");
+		expect(examples).toContain("https://avatar.aspekt.systems/triangles/nova-river?size=256&radius=full");
 	});
 
 	it("keeps docs-looking URLs available as avatar seeds", async () => {
@@ -109,6 +110,33 @@ describe("avatar worker", () => {
 		expect(svg).not.toContain('fill="#000000" opacity="0.28"');
 		expect(svg).not.toContain("<filter");
 		expect(svg).not.toContain("<text");
+	});
+
+	it("supports triangles variant URLs as triangular tile mosaics", async () => {
+		const response = await SELF.fetch("https://avatar.aspekt.systems/triangles/nova-river");
+		const svg = await readSvg(response);
+
+		expect(svg).toContain('aria-label="nova-river"');
+		expect(svg).toContain("<title>nova-river (128x128)</title>");
+		expect(svg).toContain('shape-rendering="crispEdges"');
+		expect(svg).toContain("<polygon");
+		expect(svg).toContain('rx="0"');
+		expect(svg.match(/<polygon/g)?.length ?? 0).toBeGreaterThan(40);
+		expect(new Set([...svg.matchAll(/<polygon[^>]+fill="(#[0-9A-F]{6})"/g)].map((match) => match[1])).size).toBeGreaterThan(1);
+		expect(svg).not.toContain("<circle");
+		expect(svg).not.toContain("<ellipse");
+		expect(svg).not.toContain("<radialGradient");
+		expect(svg).not.toContain("<text");
+	});
+
+	it("varies triangle color families by seed", async () => {
+		const seeds = ["nova-river", "ember-cove", "pixel-vale"];
+		const svgs = await Promise.all(
+			seeds.map(async (seed) => readSvg(await SELF.fetch(`https://avatar.aspekt.systems/triangles/${seed}`))),
+		);
+		const backgrounds = new Set(svgs.map((svg) => svg.match(/<rect width="128" height="128" fill="(#[0-9A-F]{6})"/)?.[1]));
+
+		expect(backgrounds.size).toBeGreaterThan(1);
 	});
 
 	it("adds initials to explicit variant URLs with the initials addon", async () => {

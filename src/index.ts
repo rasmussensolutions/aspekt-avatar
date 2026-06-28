@@ -1,4 +1,4 @@
-type Variant = 'gradient' | 'grid' | 'solid';
+type Variant = 'gradient' | 'grid' | 'solid' | 'triangles';
 
 type SolidPalette = {
 	background: string;
@@ -13,17 +13,23 @@ type GradientPalette = {
 	foreground: string;
 };
 
-const variants = ['gradient', 'grid', 'solid'] as const satisfies readonly Variant[];
+type TrianglePalette = {
+	background: string;
+	fills: readonly [string, string, string];
+	foreground: string;
+};
+
+const variants = ['gradient', 'grid', 'solid', 'triangles'] as const satisfies readonly Variant[];
 
 const solidPalettes = [
-	{ background: '#F8F3EA', foreground: '#6F4700', accent: '#F2B94B' },
-	{ background: '#EEF4FF', foreground: '#2645A8', accent: '#7BA4FF' },
-	{ background: '#EEF8F3', foreground: '#176B45', accent: '#5FC48A' },
-	{ background: '#FFF4E6', foreground: '#A14F00', accent: '#FFB457' },
-	{ background: '#F5F0FF', foreground: '#6046B6', accent: '#A78BFA' },
-	{ background: '#F7F7F2', foreground: '#4A5300', accent: '#CCD36E' },
-	{ background: '#EEF7F8', foreground: '#00707B', accent: '#70D4DF' },
-	{ background: '#FFF0F3', foreground: '#AA1E3B', accent: '#FF7A96' },
+	{ background: '#E7C269', foreground: '#6F4700', accent: '#F2B94B' },
+	{ background: '#AFC5FF', foreground: '#2645A8', accent: '#7BA4FF' },
+	{ background: '#98DDB4', foreground: '#0E5835', accent: '#5FC48A' },
+	{ background: '#FFC57B', foreground: '#7D3E00', accent: '#FFB457' },
+	{ background: '#CDBAFF', foreground: '#4F349F', accent: '#A78BFA' },
+	{ background: '#D9DE8A', foreground: '#4A5300', accent: '#CCD36E' },
+	{ background: '#A7E1E7', foreground: '#005E67', accent: '#70D4DF' },
+	{ background: '#FFB0BE', foreground: '#8B1630', accent: '#FF7A96' },
 ] as const satisfies readonly SolidPalette[];
 
 const gradientPalettes = [
@@ -38,6 +44,16 @@ const gradientPalettes = [
 	{ base: '#FFE45C', primary: '#FFF5A8', secondary: '#F2F1B5', foreground: '#4C4300' },
 	{ base: '#FF9915', primary: '#00686C', secondary: '#FFE05C', foreground: '#FFFFFF' },
 ] as const satisfies readonly GradientPalette[];
+
+const trianglePalettes = [
+	{ background: '#FFB37E', fills: ['#B94A00', '#8F2F00', '#F97316'], foreground: '#FFF7ED' },
+	{ background: '#A7F3D0', fills: ['#047857', '#065F46', '#14B8A6'], foreground: '#F0FDFA' },
+	{ background: '#BFDBFE', fills: ['#1D4ED8', '#1E3A8A', '#38BDF8'], foreground: '#EFF6FF' },
+	{ background: '#DDD6FE', fills: ['#6D28D9', '#4C1D95', '#A855F7'], foreground: '#F5F3FF' },
+	{ background: '#FBCFE8', fills: ['#BE185D', '#9D174D', '#FB7185'], foreground: '#FFF1F2' },
+	{ background: '#FDE68A', fills: ['#B45309', '#854D0E', '#EAB308'], foreground: '#FFF7ED' },
+	{ background: '#BAE6FD', fills: ['#0369A1', '#075985', '#22D3EE'], foreground: '#F0F9FF' },
+] as const satisfies readonly TrianglePalette[];
 
 const gridColors = ['#00686c', '#ff9915', '#32c2b9', '#edecb3', '#fad928'] as const;
 
@@ -107,6 +123,10 @@ function createDocsResponse(origin: string): Response {
 				name: 'grid',
 				description: 'Seeded 8 by 8 tile pattern.',
 			},
+			{
+				name: 'triangles',
+				description: 'Seeded triangular tile mosaic inspired by folded paper patterns.',
+			},
 		],
 		query_parameters: {
 			size: {
@@ -142,6 +162,7 @@ function createDocsResponse(origin: string): Response {
 			`${origin}/solid/nova-river?initials=false`,
 			`${origin}/gradient/nova-river?size=256&radius=full`,
 			`${origin}/grid/nova-river?initials`,
+			`${origin}/triangles/nova-river?size=256&radius=full`,
 		],
 	} as const;
 
@@ -170,8 +191,8 @@ function createAvatarSvg(options: {
 	const title = `${seed} (${size}x${size})`;
 	const fontSize = Math.round(size * 0.36);
 	const y = Math.round(size * 0.53);
-	const textOverlay =
-		showInitials && variant === 'grid' ? `<rect width="${size}" height="${size}" fill="#000000" opacity="0.28"/>` : '';
+	const needsTextOverlay = showInitials && (variant === 'grid' || variant === 'triangles');
+	const textOverlay = needsTextOverlay ? `<rect width="${size}" height="${size}" fill="#000000" opacity="0.28"/>` : '';
 	const text = showInitials
 		? `
   <text
@@ -218,6 +239,8 @@ function createPaint(
 			return createGridPaint(size, hash);
 		case 'solid':
 			return createSolidPaint(size, hash);
+		case 'triangles':
+			return createTrianglesPaint(size, hash);
 	}
 }
 
@@ -254,6 +277,60 @@ function createGradientPaint(size: number, hash: number, id: string): { backgrou
     <path filter="url(#${id}-blur)" d="M22.216 24L0 46.75l14.108 38.129L78 86l-3.081-59.276-22.378 4.005 12.972 20.186-23.35 27.395L22.216 24z" fill="${palette.secondary}" transform="translate(${secondX} ${secondY}) rotate(${secondRotation} 40 40) scale(1.2)" style="mix-blend-mode: overlay"/>
   </g>`.trim(),
 	};
+}
+
+function createTrianglesPaint(size: number, hash: number): { background: string; foreground: string; defs: string; layers: string } {
+	const palette = pickFrom(trianglePalettes, hash >>> 5);
+	const scale = size / 80;
+	const tileSize = 10;
+	const triangles: string[] = [];
+
+	for (let y = 0; y < 80; y += tileSize) {
+		for (let x = 0; x < 80; x += tileSize) {
+			const tileHash = hashString(`${hash}:triangles:${x}:${y}`);
+			const useWideTriangle = x <= 60 && ((tileHash >>> 4) % 5 === 0);
+
+			if (useWideTriangle) {
+				const points =
+					(tileHash & 1) === 0
+						? `${x},${y + tileSize} ${x + tileSize * 2},${y + tileSize} ${x + tileSize},${y}`
+						: `${x},${y} ${x + tileSize * 2},${y} ${x + tileSize},${y + tileSize}`;
+				const fill = pickFrom(palette.fills, tileHash >>> 8);
+
+				triangles.push(`<polygon points="${points}" fill="${fill}"/>`);
+				x += tileSize;
+				continue;
+			}
+
+			const points = createTrianglePoints(x, y, tileSize, tileHash % 4);
+			const fill = pickFrom(palette.fills, tileHash >>> 8);
+
+			triangles.push(`<polygon points="${points}" fill="${fill}"/>`);
+		}
+	}
+
+	return {
+		background: palette.background,
+		foreground: palette.foreground,
+		defs: '',
+		layers: `
+  <g transform="scale(${scale})" shape-rendering="crispEdges">
+    ${triangles.join('\n    ')}
+  </g>`.trim(),
+	};
+}
+
+function createTrianglePoints(x: number, y: number, size: number, direction: number): string {
+	switch (direction) {
+		case 0:
+			return `${x},${y} ${x + size},${y} ${x},${y + size}`;
+		case 1:
+			return `${x},${y} ${x + size},${y} ${x + size},${y + size}`;
+		case 2:
+			return `${x + size},${y} ${x + size},${y + size} ${x},${y + size}`;
+		default:
+			return `${x},${y} ${x + size},${y + size} ${x},${y + size}`;
+	}
 }
 
 function createGridPaint(size: number, hash: number): { background: string; foreground: string; defs: string; layers: string } {
