@@ -43,12 +43,13 @@ describe("avatar worker", () => {
 		expect(docs.base_url).toBe("https://avatar.aspekt.systems");
 		expect(browserPreview.response_type).toBe("text/html; charset=utf-8");
 		expect(docs.docs).toBe("https://avatar.aspekt.systems/docs.json?aspekt=docs");
-		expect(variants.map((variant) => variant.name)).toEqual(["gradient", "glass", "solid", "grid", "triangles"]);
+		expect(variants.map((variant) => variant.name)).toEqual(["gradient", "glass", "solid", "grid", "shapes", "triangles"]);
 		expect(queryParameters).toHaveProperty("size");
 		expect(queryParameters).toHaveProperty("radius");
 		expect(queryParameters).toHaveProperty("initials");
 		expect(examples).toContain("https://avatar.aspekt.systems/gradient/nova-river?size=256&radius=full");
 		expect(examples).toContain("https://avatar.aspekt.systems/glass/nova-river?size=256&radius=full");
+		expect(examples).toContain("https://avatar.aspekt.systems/shapes/nova-river?size=256&radius=full");
 		expect(examples).toContain("https://avatar.aspekt.systems/triangles/nova-river?size=256&radius=full");
 	});
 
@@ -184,6 +185,62 @@ describe("avatar worker", () => {
 		expect(svg).not.toContain("<ellipse");
 		expect(svg).not.toContain("<radialGradient");
 		expect(svg).not.toContain("<text");
+	});
+
+	it("supports shapes variant URLs as seeded geometric compositions", async () => {
+		const response = await SELF.fetch("https://avatar.aspekt.systems/shapes/nova-river");
+		const svg = await readSvg(response);
+		const symmetry = Number(svg.match(/data-symmetry="(\d)"/)?.[1]);
+		const shapeCount = svg.match(/data-shape=/g)?.length ?? 0;
+
+		expect(svg).toContain('aria-label="nova-river"');
+		expect(svg).toContain('<g data-generated="true"');
+		expect(svg).toContain("<path");
+		expect(symmetry).toBeGreaterThanOrEqual(1);
+		expect(symmetry).toBeLessThanOrEqual(6);
+		expect(shapeCount).toBeGreaterThanOrEqual(symmetry);
+		expect(svg.match(/<linearGradient/g)?.length ?? 0).toBeGreaterThanOrEqual(shapeCount * 2);
+		expect(svg).toContain('fill="url(#avatar-shapes-');
+		expect(svg).toContain('stroke="url(#avatar-shapes-');
+		expect(svg).toContain('rx="0"');
+		expect(svg).not.toContain("data-motif");
+		expect(svg).not.toContain("<filter");
+		expect(svg).not.toContain("<text");
+	});
+
+	it("procedurally generates deterministic shape compositions from each seed", async () => {
+		const seeds = ["nova-river", "ember-cove", "pixel-vale", "tobias"];
+		const svgs = await Promise.all(
+			seeds.map(async (seed) => readSvg(await SELF.fetch(`https://avatar.aspekt.systems/shapes/${seed}`))),
+		);
+		const repeatedSvg = await readSvg(await SELF.fetch("https://avatar.aspekt.systems/shapes/nova-river"));
+		const shapeCounts = new Set(svgs.map((svg) => svg.match(/data-shape=/g)?.length ?? 0));
+		const backgrounds = new Set(svgs.map((svg) => svg.match(/<rect width="128" height="128" fill="(#[0-9A-F]{6})"/)?.[1]));
+
+		expect(repeatedSvg).toBe(svgs[0]);
+		expect(new Set(svgs).size).toBe(seeds.length);
+		expect(shapeCounts.size).toBeGreaterThan(1);
+		expect(backgrounds.size).toBeGreaterThan(1);
+	});
+
+	it("reduces decorative detail as geometric symmetry increases", async () => {
+		const response = await SELF.fetch("https://avatar.aspekt.systems/shapes/geometry-2");
+		const svg = await readSvg(response);
+		const symmetry = Number(svg.match(/data-symmetry="(\d)"/)?.[1]);
+		const ringCount = Number(svg.match(/data-rings="(\d)"/)?.[1]);
+
+		expect(symmetry).toBeGreaterThanOrEqual(5);
+		expect(ringCount).toBe(1);
+		expect(svg).toContain('data-center="false"');
+	});
+
+	it("adds a contrast overlay when shape avatars show initials", async () => {
+		const response = await SELF.fetch("https://avatar.aspekt.systems/shapes/nova-river?initials");
+		const svg = await readSvg(response);
+
+		expect(svg).toContain(">NR</text>");
+		expect(svg).toContain('<rect width="128" height="128" fill="#000000" opacity="0.28"/>');
+		expect(svg.indexOf('fill="#000000" opacity="0.28"')).toBeLessThan(svg.indexOf(">NR</text>"));
 	});
 
 	it("varies triangle color families by seed", async () => {

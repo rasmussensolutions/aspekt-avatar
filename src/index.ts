@@ -1,4 +1,4 @@
-type Variant = 'glass' | 'gradient' | 'grid' | 'solid' | 'triangles';
+type Variant = 'glass' | 'gradient' | 'grid' | 'shapes' | 'solid' | 'triangles';
 
 type SolidPalette = {
 	background: string;
@@ -19,7 +19,15 @@ type TrianglePalette = {
 	foreground: string;
 };
 
-const variants = ['glass', 'gradient', 'grid', 'solid', 'triangles'] as const satisfies readonly Variant[];
+type ShapePalette = {
+	background: string;
+	primary: string;
+	secondary: string;
+	accent: string;
+	foreground: string;
+};
+
+const variants = ['glass', 'gradient', 'grid', 'shapes', 'solid', 'triangles'] as const satisfies readonly Variant[];
 
 const solidPalettes = [
 	{ background: '#E7C269', foreground: '#6F4700', accent: '#F2B94B' },
@@ -54,6 +62,16 @@ const trianglePalettes = [
 	{ background: '#FDE68A', fills: ['#B45309', '#854D0E', '#EAB308'], foreground: '#FFF7ED' },
 	{ background: '#BAE6FD', fills: ['#0369A1', '#075985', '#22D3EE'], foreground: '#F0F9FF' },
 ] as const satisfies readonly TrianglePalette[];
+
+const shapePalettes = [
+	{ background: '#F7F7FB', primary: '#70DDC0', secondary: '#39BFA8', accent: '#B8F4E3', foreground: '#124E47' },
+	{ background: '#F8F6FF', primary: '#8AD9E3', secondary: '#55BED0', accent: '#C4EEF3', foreground: '#15505B' },
+	{ background: '#FFF7F8', primary: '#FF9EA3', secondary: '#FF666D', accent: '#FFC8CB', foreground: '#7A2630' },
+	{ background: '#FFF9F0', primary: '#FFB85C', secondary: '#F47A47', accent: '#FFE0A8', foreground: '#713314' },
+	{ background: '#F8F5FF', primary: '#B8A0FF', secondary: '#8068E8', accent: '#DDD3FF', foreground: '#3C2B7B' },
+	{ background: '#F5FAFF', primary: '#7EB6FF', secondary: '#3979DC', accent: '#C4DCFF', foreground: '#173E78' },
+	{ background: '#FBFBEF', primary: '#D6DC69', secondary: '#9AAE35', accent: '#F0EFA5', foreground: '#465312' },
+] as const satisfies readonly ShapePalette[];
 
 const gridColors = ['#00686c', '#ff9915', '#32c2b9', '#edecb3', '#fad928'] as const;
 
@@ -198,6 +216,10 @@ function createDocsResponse(origin: string): Response {
 				description: 'Seeded 8 by 8 tile pattern.',
 			},
 			{
+				name: 'shapes',
+				description: 'Playful seeded geometric compositions with varied motifs and color palettes.',
+			},
+			{
 				name: 'triangles',
 				description: 'Seeded triangular tile mosaic inspired by folded paper patterns.',
 			},
@@ -237,6 +259,7 @@ function createDocsResponse(origin: string): Response {
 			`${origin}/gradient/nova-river?size=256&radius=full`,
 			`${origin}/glass/nova-river?size=256&radius=full`,
 			`${origin}/grid/nova-river?initials`,
+			`${origin}/shapes/nova-river?size=256&radius=full`,
 			`${origin}/triangles/nova-river?size=256&radius=full`,
 		],
 	} as const;
@@ -266,7 +289,7 @@ function createAvatarSvg(options: {
 	const title = `${seed} (${size}x${size})`;
 	const fontSize = Math.round(size * 0.36);
 	const y = Math.round(size * 0.53);
-	const needsTextOverlay = showInitials && (variant === 'grid' || variant === 'triangles');
+	const needsTextOverlay = showInitials && (variant === 'grid' || variant === 'shapes' || variant === 'triangles');
 	const textOverlay = needsTextOverlay ? `<rect width="${size}" height="${size}" fill="#000000" opacity="0.28"/>` : '';
 	const text = showInitials
 		? `
@@ -315,11 +338,262 @@ function createPaint(
 			return createGradientPaint(size, hash, id);
 		case 'grid':
 			return createGridPaint(size, hash);
+		case 'shapes':
+			return createShapesPaint(size, hash, id);
 		case 'solid':
 			return createSolidPaint(size, hash);
 		case 'triangles':
 			return createTrianglesPaint(size, hash);
 	}
+}
+
+function createShapesPaint(size: number, hash: number, id: string): { background: string; foreground: string; defs: string; layers: string } {
+	const random = createDeterministicRandom(hashString(`${hash}:shapes`));
+	const palette = shapePalettes[randomInteger(random, 0, shapePalettes.length - 1)];
+	const colors = [palette.primary, palette.secondary, palette.accent] as const;
+	const symmetry = randomInteger(random, 1, 6);
+	const phaseSteps = symmetry === 1 ? 12 : symmetry * 2;
+	const phase = randomInteger(random, 0, phaseSteps - 1) * (360 / phaseSteps);
+	const orbitRadius = symmetry === 1 ? 0 : randomBetween(random, symmetry >= 5 ? 17 : 13, 21);
+	const chord = symmetry === 1 ? 54 : 2 * orbitRadius * Math.sin(Math.PI / symmetry);
+	const nodeDensityMin = symmetry >= 5 ? 0.3 : 0.34;
+	const nodeDensityMax = symmetry >= 5 ? 0.4 : symmetry === 4 ? 0.44 : 0.5;
+	const minNodeRadius = symmetry >= 5 ? 5.5 : 6.5;
+	const maxNodeRadius = symmetry >= 5 ? 9.5 : 12.5;
+	const nodeRadius =
+		symmetry === 1
+			? randomBetween(random, 21, 27)
+			: Math.max(minNodeRadius, Math.min(maxNodeRadius, chord * randomBetween(random, nodeDensityMin, nodeDensityMax)));
+	const maxRingCount = symmetry === 1 ? 3 : symmetry <= 3 ? 2 : 1;
+	const ringCount = randomInteger(random, 1, maxRingCount);
+	const ringScale = randomBetween(random, 0.5, symmetry >= 4 ? 0.62 : 0.7);
+	const eccentricity = randomBetween(random, symmetry >= 5 ? 0.12 : 0.25, symmetry >= 5 ? 0.38 : symmetry === 4 ? 0.55 : 0.9);
+	const colorOffset = randomInteger(random, 0, colors.length - 1);
+	const terminalRingsAreFilled = symmetry <= 4 && random() > 0.5;
+	const nodes = Array.from({ length: symmetry }, (_, index) => {
+		const angle = phase + index * (360 / symmetry);
+		const radians = (angle * Math.PI) / 180;
+
+		return {
+			x: 40 + Math.cos(radians) * orbitRadius,
+			y: 40 + Math.sin(radians) * orbitRadius,
+			angle,
+		};
+	});
+	const connectionGradientId = `${id}-shape-connections`;
+	const boundaryGradientId = `${id}-shape-boundary`;
+	const connections = createGeometricConnections(nodes, symmetry, nodeRadius, `url(#${connectionGradientId})`, random);
+	const generatedNodes = nodes.map((node, index) =>
+		createGeometricNode({
+			x: node.x,
+			y: node.y,
+			direction: symmetry === 1 ? phase : node.angle,
+			radius: nodeRadius,
+			fill: `url(#${id}-shape-${index})`,
+			terminalFill: `url(#${id}-shape-${index}-inner)`,
+			ringCount,
+			ringScale,
+			eccentricity,
+			terminalRingIsFilled: terminalRingsAreFilled,
+			index,
+			palette,
+		}),
+	);
+	const includeCenter = symmetry >= 2 && symmetry <= 4 && random() > 0.55;
+	const centerRadius = Math.min(nodeRadius * randomBetween(random, 0.55, 0.9), 8.5);
+	const centerNode = includeCenter
+		? createGeometricNode({
+				x: 40,
+				y: 40,
+				direction: phase + 180,
+				radius: centerRadius,
+				fill: `url(#${id}-shape-center)`,
+				terminalFill: `url(#${id}-shape-center-inner)`,
+				ringCount: 1,
+				ringScale,
+				eccentricity: eccentricity * 0.5,
+				terminalRingIsFilled: terminalRingsAreFilled,
+				index: generatedNodes.length,
+				palette,
+			})
+		: '';
+	const cuts = createGeometricCuts(symmetry, phase, orbitRadius + nodeRadius, palette, random);
+	const includeBoundary = symmetry >= 2 && symmetry <= 4 && cuts === '' && random() > 0.82;
+	const boundary =
+		includeBoundary
+			? `<circle cx="40" cy="40" r="${formatSvgNumber(orbitRadius + nodeRadius + 2.5)}" fill="none" stroke="url(#${boundaryGradientId})" stroke-width="${formatSvgNumber(randomBetween(random, 1.5, 2.5))}"/>`
+			: '';
+	const nodeGradientDefs = nodes.flatMap((node, index) => {
+		const primaryColor = colors[(index + colorOffset) % colors.length];
+		const secondaryColor = colors[(index + colorOffset + 1) % colors.length];
+		const highlightColor = colors[(index + colorOffset + 2) % colors.length];
+
+		return [
+			createShapeGradient(`${id}-shape-${index}`, node.angle + 35, highlightColor, primaryColor, secondaryColor),
+			createShapeGradient(`${id}-shape-${index}-inner`, node.angle + 215, primaryColor, secondaryColor, highlightColor),
+		];
+	});
+	const centerGradientDefs = includeCenter
+		? [
+				createShapeGradient(
+					`${id}-shape-center`,
+					phase + 45,
+					colors[(colorOffset + symmetry + 2) % colors.length],
+					colors[(colorOffset + symmetry) % colors.length],
+					colors[(colorOffset + symmetry + 1) % colors.length],
+				),
+				createShapeGradient(
+					`${id}-shape-center-inner`,
+					phase + 225,
+					colors[(colorOffset + symmetry) % colors.length],
+					colors[(colorOffset + symmetry + 1) % colors.length],
+					colors[(colorOffset + symmetry + 2) % colors.length],
+				),
+			]
+		: [];
+	const gradientDefs = [
+		createShapeGradient(connectionGradientId, phase, palette.primary, palette.secondary, palette.accent),
+		createShapeGradient(boundaryGradientId, phase + 90, palette.accent, palette.primary, palette.secondary),
+		...nodeGradientDefs,
+		...centerGradientDefs,
+	].join('\n    ');
+
+	return {
+		background: palette.background,
+		foreground: palette.foreground,
+		defs: gradientDefs,
+		layers: `
+  <g transform="scale(${size / 80})">
+	<g data-generated="true" data-symmetry="${symmetry}" data-rings="${ringCount}" data-center="${includeCenter}">
+		${boundary}
+		${connections}
+		${generatedNodes.join('\n      ')}
+		${centerNode}
+		${cuts}
+    </g>
+  </g>`.trim(),
+	};
+}
+
+function createGeometricConnections(
+	nodes: ReadonlyArray<{ x: number; y: number }>,
+	symmetry: number,
+	nodeRadius: number,
+	stroke: string,
+	random: () => number,
+): string {
+	if (symmetry === 1) return '';
+
+	const strokeWidth = formatSvgNumber(Math.min(nodeRadius * 0.48, randomBetween(random, 2.5, symmetry >= 5 ? 3.2 : 4.5)));
+	const connectPerimeter = symmetry >= 5 || (symmetry > 2 && random() > 0.42);
+
+	if (connectPerimeter) {
+		const points = nodes.map((node) => `${formatSvgNumber(node.x)} ${formatSvgNumber(node.y)}`);
+		return `<path d="M ${points.join(' L ')} Z" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"/>`;
+	}
+
+	const paths = nodes.map(
+		(node) => `M 40 40 L ${formatSvgNumber(node.x)} ${formatSvgNumber(node.y)}`,
+	);
+	return `<path d="${paths.join(' ')}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="round"/>`;
+}
+
+function createGeometricNode(options: {
+	x: number;
+	y: number;
+	direction: number;
+	radius: number;
+	fill: string;
+	terminalFill: string;
+	ringCount: number;
+	ringScale: number;
+	eccentricity: number;
+	terminalRingIsFilled: boolean;
+	index: number;
+	palette: ShapePalette;
+}): string {
+	const { x, y, direction, radius, fill, terminalFill, ringCount, ringScale, eccentricity, terminalRingIsFilled, index, palette } =
+		options;
+	const radians = (direction * Math.PI) / 180;
+	const rings: string[] = [];
+
+	for (let ring = 1; ring <= ringCount; ring++) {
+		const ringRadius = radius * ringScale ** ring;
+		const shift = (radius - ringRadius) * eccentricity;
+		const ringX = x + Math.cos(radians) * shift;
+		const ringY = y + Math.sin(radians) * shift;
+		const isTerminalRing = ring === ringCount;
+		const ringFill = isTerminalRing && terminalRingIsFilled ? terminalFill : 'none';
+
+		rings.push(
+			`<circle cx="${formatSvgNumber(ringX)}" cy="${formatSvgNumber(ringY)}" r="${formatSvgNumber(ringRadius)}" fill="${ringFill}" stroke="${palette.background}" stroke-width="2.2"/>`,
+		);
+	}
+
+	return `<g data-shape="${index}">
+		<circle cx="${formatSvgNumber(x)}" cy="${formatSvgNumber(y)}" r="${formatSvgNumber(radius)}" fill="${fill}"/>
+		${rings.join('\n        ')}
+	  </g>`;
+}
+
+function createShapeGradient(id: string, angle: number, start: string, middle: string, end: string): string {
+	const radians = (angle * Math.PI) / 180;
+	const x = Math.cos(radians) * 50;
+	const y = Math.sin(radians) * 50;
+
+	return `<linearGradient id="${id}" x1="${formatSvgNumber(50 - x)}%" y1="${formatSvgNumber(50 - y)}%" x2="${formatSvgNumber(50 + x)}%" y2="${formatSvgNumber(50 + y)}%">
+      <stop offset="0%" stop-color="${start}"/>
+      <stop offset="52%" stop-color="${middle}"/>
+      <stop offset="100%" stop-color="${end}"/>
+    </linearGradient>`;
+}
+
+function createGeometricCuts(
+	symmetry: number,
+	phase: number,
+	radius: number,
+	palette: ShapePalette,
+	random: () => number,
+): string {
+	if (symmetry === 1 || symmetry > 4 || random() < 0.8) return '';
+
+	const cutCount = symmetry % 2 === 0 ? 2 : randomInteger(random, 1, 3);
+	const paths = Array.from({ length: cutCount }, (_, index) => {
+		const angle = phase + index * (180 / cutCount);
+		const radians = (angle * Math.PI) / 180;
+		const x = Math.cos(radians) * radius;
+		const y = Math.sin(radians) * radius;
+
+		return `M ${formatSvgNumber(40 - x)} ${formatSvgNumber(40 - y)} L ${formatSvgNumber(40 + x)} ${formatSvgNumber(40 + y)}`;
+	});
+
+	return `<path d="${paths.join(' ')}" fill="none" stroke="${palette.background}" stroke-width="${formatSvgNumber(randomBetween(random, 2.2, 3.4))}" stroke-linecap="round"/>`;
+}
+
+function createDeterministicRandom(seed: number): () => number {
+	let state = seed || 0x6d2b79f5;
+
+	return () => {
+		state += 0x6d2b79f5;
+		let value = state;
+
+		value = Math.imul(value ^ (value >>> 15), value | 1);
+		value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+
+		return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+	};
+}
+
+function randomBetween(random: () => number, min: number, max: number): number {
+	return min + random() * (max - min);
+}
+
+function randomInteger(random: () => number, min: number, max: number): number {
+	return Math.floor(randomBetween(random, min, max + 1));
+}
+
+function formatSvgNumber(value: number): string {
+	return Number(value.toFixed(2)).toString();
 }
 
 function createSolidPaint(size: number, hash: number): { background: string; foreground: string; defs: string; layers: string } {
