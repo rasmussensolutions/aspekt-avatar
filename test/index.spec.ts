@@ -43,12 +43,29 @@ describe("avatar worker", () => {
 		expect(docs.base_url).toBe("https://avatar.aspekt.systems");
 		expect(browserPreview.response_type).toBe("text/html; charset=utf-8");
 		expect(docs.docs).toBe("https://avatar.aspekt.systems/docs.json?aspekt=docs");
-		expect(variants.map((variant) => variant.name)).toEqual(["gradient", "glass", "solid", "grid", "shapes", "triangles"]);
+		expect(variants.map((variant) => variant.name)).toEqual([
+			"aurora",
+			"bloom",
+			"crystal",
+			"gradient",
+			"glass",
+			"solid",
+			"grid",
+			"orbit",
+			"ribbons",
+			"shapes",
+			"triangles",
+		]);
 		expect(queryParameters).toHaveProperty("size");
 		expect(queryParameters).toHaveProperty("radius");
 		expect(queryParameters).toHaveProperty("initials");
+		expect(examples).toContain("https://avatar.aspekt.systems/aurora/nova-river?size=256&radius=full");
+		expect(examples).toContain("https://avatar.aspekt.systems/bloom/nova-river?size=256&radius=full");
+		expect(examples).toContain("https://avatar.aspekt.systems/crystal/nova-river?size=256&radius=full");
 		expect(examples).toContain("https://avatar.aspekt.systems/gradient/nova-river?size=256&radius=full");
 		expect(examples).toContain("https://avatar.aspekt.systems/glass/nova-river?size=256&radius=full");
+		expect(examples).toContain("https://avatar.aspekt.systems/orbit/nova-river?size=256&radius=full");
+		expect(examples).toContain("https://avatar.aspekt.systems/ribbons/nova-river?size=256&radius=full");
 		expect(examples).toContain("https://avatar.aspekt.systems/shapes/nova-river?size=256&radius=full");
 		expect(examples).toContain("https://avatar.aspekt.systems/triangles/nova-river?size=256&radius=full");
 	});
@@ -168,6 +185,163 @@ describe("avatar worker", () => {
 		expect(svg).not.toContain('fill="#000000" opacity="0.28"');
 		expect(svg).not.toContain("<filter");
 		expect(svg).not.toContain("<text");
+	});
+
+	it("supports bloom variant URLs as luminous radial flowers", async () => {
+		const response = await SELF.fetch("https://avatar.aspekt.systems/bloom/nova-river");
+		const svg = await readSvg(response);
+		const petalCount = Number(svg.match(/data-petals="(\d)"/)?.[1]);
+
+		expect(svg).toContain('data-generated="bloom"');
+		expect(petalCount).toBeGreaterThanOrEqual(5);
+		expect(petalCount).toBeLessThanOrEqual(9);
+		expect(svg.match(/data-petal=/g)).toHaveLength(petalCount);
+		expect(svg.match(/<linearGradient/g)).toHaveLength(petalCount);
+		expect(svg.match(/<radialGradient/g)).toHaveLength(2);
+		expect(svg).toContain("<feDropShadow");
+		expect(svg).toContain('fill="url(#avatar-bloom-');
+		expect(svg).not.toContain("<polygon");
+		expect(svg).not.toContain("<text");
+	});
+
+	it("supports aurora variant URLs as layered glowing veils", async () => {
+		const response = await SELF.fetch("https://avatar.aspekt.systems/aurora/nova-river");
+		const svg = await readSvg(response);
+		const veilCount = Number(svg.match(/data-veils="(\d)"/)?.[1]);
+
+		expect(svg).toContain('data-generated="aurora"');
+		expect(veilCount).toBeGreaterThanOrEqual(3);
+		expect(veilCount).toBeLessThanOrEqual(5);
+		expect(svg.match(/data-veil=/g)).toHaveLength(veilCount);
+		expect(svg.match(/<linearGradient/g)).toHaveLength(veilCount);
+		expect(svg.match(/<radialGradient/g)).toHaveLength(1);
+		expect(svg).toContain("<feGaussianBlur");
+		expect(svg).toContain("mix-blend-mode: screen");
+		expect(svg).not.toContain("<polygon");
+		expect(svg).not.toContain("<text");
+	});
+
+	it("procedurally generates deterministic bloom and aurora compositions", async () => {
+		const seeds = ["nova-river", "ember-cove", "pixel-vale", "tobias"];
+
+		for (const variant of ["bloom", "aurora"]) {
+			const svgs = await Promise.all(
+				seeds.map(async (seed) => readSvg(await SELF.fetch(`https://avatar.aspekt.systems/${variant}/${seed}`))),
+			);
+			const repeatedSvg = await readSvg(await SELF.fetch(`https://avatar.aspekt.systems/${variant}/nova-river`));
+
+			expect(repeatedSvg).toBe(svgs[0]);
+			expect(new Set(svgs).size).toBe(seeds.length);
+		}
+	});
+
+	it("keeps initials legible on bloom and aurora avatars", async () => {
+		for (const variant of ["bloom", "aurora"]) {
+			const svg = await readSvg(await SELF.fetch(`https://avatar.aspekt.systems/${variant}/nova-river?initials`));
+
+			expect(svg).toContain(">NR</text>");
+			expect(svg).toContain('<rect width="128" height="128" fill="#000000" opacity="0.28"/>');
+		}
+	});
+
+	it("supports orbit variant URLs as coherent elliptical systems", async () => {
+		const response = await SELF.fetch("https://avatar.aspekt.systems/orbit/nova-river");
+		const svg = await readSvg(response);
+		const orbitCount = Number(svg.match(/data-orbits="(\d)"/)?.[1]);
+
+		expect(svg).toContain('data-generated="orbit"');
+		expect(orbitCount).toBeGreaterThanOrEqual(3);
+		expect(orbitCount).toBeLessThanOrEqual(5);
+		expect(svg.match(/data-orbit=/g)).toHaveLength(orbitCount);
+		expect(svg.match(/data-pearl=/g)).toHaveLength(orbitCount);
+		expect(svg.match(/<ellipse/g)).toHaveLength(orbitCount * 3);
+		expect(svg.match(/<linearGradient/g)).toHaveLength(orbitCount);
+		expect(svg.match(/<radialGradient/g)).toHaveLength(orbitCount + 2);
+		expect(svg).toContain("<feDropShadow");
+		expect(svg).not.toContain("<polygon");
+		expect(svg).not.toContain("<text");
+	});
+
+	it("supports crystal variant URLs as connected radial facet systems", async () => {
+		const response = await SELF.fetch("https://avatar.aspekt.systems/crystal/nova-river");
+		const svg = await readSvg(response);
+		const symmetry = Number(svg.match(/data-symmetry="(\d)"/)?.[1]);
+		const facetCount = Number(svg.match(/data-facets="(\d+)"/)?.[1]);
+
+		expect(svg).toContain('data-generated="crystal"');
+		expect(symmetry).toBeGreaterThanOrEqual(5);
+		expect(symmetry).toBeLessThanOrEqual(8);
+		expect(facetCount).toBe(symmetry * 2 + 1);
+		expect(svg.match(/data-facet=/g)).toHaveLength(facetCount);
+		expect(svg.match(/<linearGradient/g)).toHaveLength(facetCount);
+		expect(svg.match(/<polygon/g)).toHaveLength(facetCount + 1);
+		expect(svg).toContain("<feDropShadow");
+		expect(svg).not.toContain("<ellipse");
+		expect(svg).not.toContain("<text");
+	});
+
+	it("procedurally generates deterministic orbit and crystal compositions", async () => {
+		const seeds = ["nova-river", "ember-cove", "pixel-vale", "tobias"];
+
+		for (const variant of ["orbit", "crystal"]) {
+			const svgs = await Promise.all(
+				seeds.map(async (seed) => readSvg(await SELF.fetch(`https://avatar.aspekt.systems/${variant}/${seed}`))),
+			);
+			const repeatedSvg = await readSvg(await SELF.fetch(`https://avatar.aspekt.systems/${variant}/nova-river`));
+
+			expect(repeatedSvg).toBe(svgs[0]);
+			expect(new Set(svgs).size).toBe(seeds.length);
+		}
+	});
+
+	it("keeps initials legible on orbit and crystal avatars", async () => {
+		for (const variant of ["orbit", "crystal"]) {
+			const svg = await readSvg(await SELF.fetch(`https://avatar.aspekt.systems/${variant}/nova-river?initials`));
+
+			expect(svg).toContain(">NR</text>");
+			expect(svg).toContain('<rect width="128" height="128" fill="#000000" opacity="0.28"/>');
+		}
+	});
+
+	it("supports ribbons variant URLs as coordinated gradient weaves", async () => {
+		const response = await SELF.fetch("https://avatar.aspekt.systems/ribbons/nova-river");
+		const svg = await readSvg(response);
+		const ribbonCount = Number(svg.match(/data-ribbons="(\d)"/)?.[1]);
+
+		expect(svg).toContain('aria-label="nova-river"');
+		expect(svg).toContain('data-generated="ribbons"');
+		expect(ribbonCount).toBeGreaterThanOrEqual(3);
+		expect(ribbonCount).toBeLessThanOrEqual(5);
+		expect(svg.match(/data-ribbon=/g)).toHaveLength(ribbonCount);
+		expect(svg.match(/<linearGradient/g)).toHaveLength(ribbonCount);
+		expect(svg.match(/stroke="url\(#avatar-ribbons-/g)).toHaveLength(ribbonCount);
+		expect(svg).toContain("<feDropShadow");
+		expect(svg).toContain('stroke-opacity="0.3"');
+		expect(svg).not.toContain("<circle");
+		expect(svg).not.toContain("<polygon");
+		expect(svg).not.toContain("<text");
+	});
+
+	it("procedurally generates deterministic ribbon compositions from each seed", async () => {
+		const seeds = ["nova-river", "ember-cove", "pixel-vale", "tobias"];
+		const svgs = await Promise.all(
+			seeds.map(async (seed) => readSvg(await SELF.fetch(`https://avatar.aspekt.systems/ribbons/${seed}`))),
+		);
+		const repeatedSvg = await readSvg(await SELF.fetch("https://avatar.aspekt.systems/ribbons/nova-river"));
+		const backgrounds = new Set(svgs.map((svg) => svg.match(/<rect width="128" height="128" fill="(#[0-9A-F]{6})"/)?.[1]));
+
+		expect(repeatedSvg).toBe(svgs[0]);
+		expect(new Set(svgs).size).toBe(seeds.length);
+		expect(backgrounds.size).toBeGreaterThan(1);
+	});
+
+	it("adds a contrast overlay when ribbon avatars show initials", async () => {
+		const response = await SELF.fetch("https://avatar.aspekt.systems/ribbons/nova-river?initials");
+		const svg = await readSvg(response);
+
+		expect(svg).toContain(">NR</text>");
+		expect(svg).toContain('<rect width="128" height="128" fill="#000000" opacity="0.28"/>');
+		expect(svg.indexOf('fill="#000000" opacity="0.28"')).toBeLessThan(svg.indexOf(">NR</text>"));
 	});
 
 	it("supports triangles variant URLs as triangular tile mosaics", async () => {

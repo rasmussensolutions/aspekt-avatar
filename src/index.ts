@@ -1,4 +1,4 @@
-type Variant = 'glass' | 'gradient' | 'grid' | 'shapes' | 'solid' | 'triangles';
+type Variant = 'aurora' | 'bloom' | 'crystal' | 'glass' | 'gradient' | 'grid' | 'orbit' | 'ribbons' | 'shapes' | 'solid' | 'triangles';
 
 type SolidPalette = {
 	background: string;
@@ -27,7 +27,37 @@ type ShapePalette = {
 	foreground: string;
 };
 
-const variants = ['glass', 'gradient', 'grid', 'shapes', 'solid', 'triangles'] as const satisfies readonly Variant[];
+type RibbonPalette = {
+	background: string;
+	colors: readonly [string, string, string, string];
+	foreground: string;
+};
+
+type BloomPalette = {
+	background: string;
+	colors: readonly [string, string, string, string];
+	foreground: string;
+};
+
+type AuroraPalette = {
+	background: string;
+	colors: readonly [string, string, string, string];
+	foreground: string;
+};
+
+type OrbitPalette = {
+	background: string;
+	colors: readonly [string, string, string, string];
+	foreground: string;
+};
+
+type CrystalPalette = {
+	background: string;
+	colors: readonly [string, string, string, string];
+	foreground: string;
+};
+
+const variants = ['aurora', 'bloom', 'crystal', 'glass', 'gradient', 'grid', 'orbit', 'ribbons', 'shapes', 'solid', 'triangles'] as const satisfies readonly Variant[];
 
 const solidPalettes = [
 	{ background: '#E7C269', foreground: '#6F4700', accent: '#F2B94B' },
@@ -72,6 +102,51 @@ const shapePalettes = [
 	{ background: '#F5FAFF', primary: '#7EB6FF', secondary: '#3979DC', accent: '#C4DCFF', foreground: '#173E78' },
 	{ background: '#FBFBEF', primary: '#D6DC69', secondary: '#9AAE35', accent: '#F0EFA5', foreground: '#465312' },
 ] as const satisfies readonly ShapePalette[];
+
+const ribbonPalettes = [
+	{ background: '#F7F5FF', colors: ['#7468F2', '#B39CFF', '#69D5E7', '#F1A5CF'], foreground: '#FFFFFF' },
+	{ background: '#F1FBF8', colors: ['#139F91', '#63D4BD', '#B0E8D5', '#4F8ED4'], foreground: '#FFFFFF' },
+	{ background: '#FFF5F1', colors: ['#FF656D', '#FF9B68', '#FFD166', '#E56891'], foreground: '#FFFFFF' },
+	{ background: '#F2F7FF', colors: ['#3977E8', '#68A7FF', '#8DDBE9', '#7065DC'], foreground: '#FFFFFF' },
+	{ background: '#161426', colors: ['#A58AF8', '#5EA3F5', '#F071B4', '#2ACDB7'], foreground: '#FFFFFF' },
+	{ background: '#FFF9E9', colors: ['#EAA628', '#F3D459', '#8BCF87', '#4BA9A2'], foreground: '#FFFFFF' },
+] as const satisfies readonly RibbonPalette[];
+
+const bloomPalettes = [
+	{ background: '#FFF8F5', colors: ['#FF6B88', '#FF9A8B', '#FFD3A5', '#E66CC7'], foreground: '#FFFFFF' },
+	{ background: '#F4FBF8', colors: ['#12A88F', '#67D7B7', '#B9E86A', '#4BA7D8'], foreground: '#FFFFFF' },
+	{ background: '#F8F5FF', colors: ['#745EF1', '#A888F7', '#E28ED8', '#76C7E8'], foreground: '#FFFFFF' },
+	{ background: '#FFF9E9', colors: ['#F4A52E', '#F6D34F', '#EF7A73', '#D65C9B'], foreground: '#FFFFFF' },
+	{ background: '#F2F8FF', colors: ['#3178E7', '#66B5F4', '#70D9D0', '#7367DF'], foreground: '#FFFFFF' },
+	{ background: '#181528', colors: ['#FF7DB5', '#A77BF3', '#5BC8EF', '#59DBB2'], foreground: '#FFFFFF' },
+] as const satisfies readonly BloomPalette[];
+
+const auroraPalettes = [
+	{ background: '#090F24', colors: ['#21D4B4', '#43A5F5', '#8069F2', '#F46FB3'], foreground: '#FFFFFF' },
+	{ background: '#171027', colors: ['#F071B8', '#A66CF2', '#5AA9F4', '#58D6BE'], foreground: '#FFFFFF' },
+	{ background: '#071D25', colors: ['#55E1C1', '#83E779', '#43B7E8', '#6D72F3'], foreground: '#FFFFFF' },
+	{ background: '#23101B', colors: ['#FF745F', '#F6B84B', '#E965A8', '#8D6AF2'], foreground: '#FFFFFF' },
+	{ background: '#0C1830', colors: ['#60C6FF', '#637CF4', '#A36AEF', '#F277C6'], foreground: '#FFFFFF' },
+	{ background: '#111B18', colors: ['#8DE978', '#30D1A8', '#37A8E8', '#D2E65A'], foreground: '#FFFFFF' },
+] as const satisfies readonly AuroraPalette[];
+
+const orbitPalettes = [
+	{ background: '#F5F7FF', colors: ['#5D69EB', '#8C78F4', '#56C6E6', '#E878B7'], foreground: '#FFFFFF' },
+	{ background: '#F2FBF8', colors: ['#159E8D', '#5ED2B4', '#67B7EB', '#7C6EE7'], foreground: '#FFFFFF' },
+	{ background: '#FFF7F3', colors: ['#F06B72', '#F6A04D', '#E569A4', '#8A71EA'], foreground: '#FFFFFF' },
+	{ background: '#151426', colors: ['#8D79F4', '#59B4F0', '#54D5B3', '#F278B7'], foreground: '#FFFFFF' },
+	{ background: '#0C2030', colors: ['#55D5C2', '#59A8EF', '#8C74F0', '#F083BB'], foreground: '#FFFFFF' },
+	{ background: '#FFF9E8', colors: ['#E9A32A', '#E9D54F', '#65C39D', '#4E9FD4'], foreground: '#FFFFFF' },
+] as const satisfies readonly OrbitPalette[];
+
+const crystalPalettes = [
+	{ background: '#F4F7FF', colors: ['#486FE7', '#65B8EF', '#7AE0D0', '#8069E8'], foreground: '#FFFFFF' },
+	{ background: '#FFF5F6', colors: ['#F05F79', '#F59A76', '#F3C85A', '#D762B0'], foreground: '#FFFFFF' },
+	{ background: '#F6F3FF', colors: ['#715CE5', '#9B7AF1', '#DB80D1', '#62C3E0'], foreground: '#FFFFFF' },
+	{ background: '#F2FBF6', colors: ['#149D82', '#59CC9D', '#A5D95A', '#49A9D1'], foreground: '#FFFFFF' },
+	{ background: '#181526', colors: ['#A17DF2', '#5DB8EF', '#55D7B0', '#EE76B2'], foreground: '#FFFFFF' },
+	{ background: '#FFF9E9', colors: ['#E8992D', '#F2CF4E', '#EC7371', '#A665D8'], foreground: '#FFFFFF' },
+] as const satisfies readonly CrystalPalette[];
 
 const gridColors = ['#00686c', '#ff9915', '#32c2b9', '#edecb3', '#fad928'] as const;
 
@@ -199,6 +274,18 @@ function createDocsResponse(origin: string): Response {
 		],
 		variants: [
 			{
+				name: 'aurora',
+				description: 'Layered seeded light veils with soft glow, flowing contours, and luminous color blends.',
+			},
+			{
+				name: 'bloom',
+				description: 'Seeded radial flowers with balanced petals, translucent gradients, and a luminous center.',
+			},
+			{
+				name: 'crystal',
+				description: 'Seeded radial gemstones assembled from connected facet rings and piece-specific gradients.',
+			},
+			{
 				name: 'gradient',
 				description: 'Soft abstract gradient shapes generated from the seed.',
 				default_for_seed_urls: true,
@@ -216,8 +303,16 @@ function createDocsResponse(origin: string): Response {
 				description: 'Seeded 8 by 8 tile pattern.',
 			},
 			{
+				name: 'orbit',
+				description: 'Seeded elliptical systems with gradient tracks, luminous pearls, and a shared center.',
+			},
+			{
+				name: 'ribbons',
+				description: 'Smooth seeded ribbon weaves with coordinated curves, crossings, and satin gradients.',
+			},
+			{
 				name: 'shapes',
-				description: 'Playful seeded geometric compositions with varied motifs and color palettes.',
+				description: 'Seeded geometric constructions with balanced symmetry, nested rings, and piece-specific gradients.',
 			},
 			{
 				name: 'triangles',
@@ -255,10 +350,15 @@ function createDocsResponse(origin: string): Response {
 		},
 		examples: [
 			`${origin}/mira-slate`,
+			`${origin}/aurora/nova-river?size=256&radius=full`,
+			`${origin}/bloom/nova-river?size=256&radius=full`,
+			`${origin}/crystal/nova-river?size=256&radius=full`,
 			`${origin}/solid/nova-river`,
 			`${origin}/gradient/nova-river?size=256&radius=full`,
 			`${origin}/glass/nova-river?size=256&radius=full`,
 			`${origin}/grid/nova-river?initials`,
+			`${origin}/orbit/nova-river?size=256&radius=full`,
+			`${origin}/ribbons/nova-river?size=256&radius=full`,
 			`${origin}/shapes/nova-river?size=256&radius=full`,
 			`${origin}/triangles/nova-river?size=256&radius=full`,
 		],
@@ -289,7 +389,16 @@ function createAvatarSvg(options: {
 	const title = `${seed} (${size}x${size})`;
 	const fontSize = Math.round(size * 0.36);
 	const y = Math.round(size * 0.53);
-	const needsTextOverlay = showInitials && (variant === 'grid' || variant === 'shapes' || variant === 'triangles');
+	const needsTextOverlay =
+		showInitials &&
+		(variant === 'aurora' ||
+			variant === 'bloom' ||
+			variant === 'crystal' ||
+			variant === 'grid' ||
+			variant === 'orbit' ||
+			variant === 'ribbons' ||
+			variant === 'shapes' ||
+			variant === 'triangles');
 	const textOverlay = needsTextOverlay ? `<rect width="${size}" height="${size}" fill="#000000" opacity="0.28"/>` : '';
 	const text = showInitials
 		? `
@@ -332,12 +441,22 @@ function createPaint(
 	radius: number,
 ): { background: string; foreground: string; defs: string; layers: string } {
 	switch (variant) {
+		case 'aurora':
+			return createAuroraPaint(size, hash, id);
+		case 'bloom':
+			return createBloomPaint(size, hash, id);
+		case 'crystal':
+			return createCrystalPaint(size, hash, id);
 		case 'glass':
 			return createGlassPaint(size, hash, id, radius);
 		case 'gradient':
 			return createGradientPaint(size, hash, id);
 		case 'grid':
 			return createGridPaint(size, hash);
+		case 'orbit':
+			return createOrbitPaint(size, hash, id);
+		case 'ribbons':
+			return createRibbonsPaint(size, hash, id);
 		case 'shapes':
 			return createShapesPaint(size, hash, id);
 		case 'solid':
@@ -345,6 +464,431 @@ function createPaint(
 		case 'triangles':
 			return createTrianglesPaint(size, hash);
 	}
+}
+
+function createBloomPaint(size: number, hash: number, id: string): { background: string; foreground: string; defs: string; layers: string } {
+	const random = createDeterministicRandom(hashString(`${hash}:bloom`));
+	const palette = bloomPalettes[randomInteger(random, 0, bloomPalettes.length - 1)];
+	const petalCount = randomInteger(random, 5, 9);
+	const rotation = randomBetween(random, 0, 360 / petalCount);
+	const petalLength = randomBetween(random, 26, 33);
+	const petalWidth = randomBetween(random, 9.5, 13.5) * Math.sqrt(7 / petalCount);
+	const tipLean = randomBetween(random, -3.4, 3.4);
+	const innerScale = randomBetween(random, 0.48, 0.62);
+	const innerTwist = randomBetween(random, -11, 11);
+	const centerRadius = randomBetween(random, 5.5, 8);
+	const scale = size / 80;
+	const petalPath = createPetalPath(petalLength, petalWidth, tipLean);
+	const innerPetalPath = createPetalPath(petalLength * innerScale, petalWidth * innerScale, -tipLean * 0.45);
+	const gradients: string[] = [];
+	const outerPetals: string[] = [];
+	const innerPetals: string[] = [];
+
+	for (let index = 0; index < petalCount; index++) {
+		const angle = rotation + index * (360 / petalCount);
+		const gradientId = `${id}-bloom-${index}`;
+		const start = palette.colors[index % palette.colors.length];
+		const middle = palette.colors[(index + 1) % palette.colors.length];
+		const end = palette.colors[(index + 2) % palette.colors.length];
+
+		gradients.push(createShapeGradient(gradientId, angle + 34, start, middle, end));
+		outerPetals.push(
+			`<path data-petal="${index}" d="${petalPath}" fill="url(#${gradientId})" fill-opacity="0.9" stroke="${palette.background}" stroke-opacity="0.72" stroke-width="0.8" transform="rotate(${formatSvgNumber(angle)} 40 40)" filter="url(#${id}-bloom-shadow)"/>`,
+		);
+		innerPetals.push(
+			`<path d="${innerPetalPath}" fill="url(#${gradientId})" fill-opacity="0.58" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="0.55" transform="rotate(${formatSvgNumber(angle + 180 / petalCount + innerTwist)} 40 40)"/>`,
+		);
+	}
+
+	return {
+		background: palette.background,
+		foreground: palette.foreground,
+		defs: `${gradients.join('\n    ')}
+    <radialGradient id="${id}-bloom-center" cx="38%" cy="34%" r="68%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="36%" stop-color="${palette.colors[2]}"/>
+      <stop offset="100%" stop-color="${palette.colors[0]}"/>
+    </radialGradient>
+    <radialGradient id="${id}-bloom-halo">
+      <stop offset="0%" stop-color="${palette.colors[1]}" stop-opacity="0.24"/>
+      <stop offset="100%" stop-color="${palette.colors[1]}" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="${id}-bloom-shadow" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#21153D" flood-opacity="0.18"/>
+    </filter>`,
+		layers: `<g transform="scale(${formatSvgNumber(scale)})">
+    <g data-generated="bloom" data-petals="${petalCount}">
+      <circle cx="40" cy="40" r="35" fill="url(#${id}-bloom-halo)"/>
+      ${outerPetals.join('\n      ')}
+      ${innerPetals.join('\n      ')}
+      <circle cx="40" cy="40" r="${formatSvgNumber(centerRadius + 1.5)}" fill="${palette.background}" fill-opacity="0.72"/>
+      <circle cx="40" cy="40" r="${formatSvgNumber(centerRadius)}" fill="url(#${id}-bloom-center)" stroke="#FFFFFF" stroke-opacity="0.48" stroke-width="0.8"/>
+      <circle cx="${formatSvgNumber(40 - centerRadius * 0.24)}" cy="${formatSvgNumber(40 - centerRadius * 0.3)}" r="${formatSvgNumber(centerRadius * 0.19)}" fill="#FFFFFF" fill-opacity="0.62"/>
+    </g>
+  </g>`,
+	};
+}
+
+function createPetalPath(length: number, width: number, tipLean: number): string {
+	const tipX = 40 + tipLean;
+	const tipY = 40 - length;
+	const shoulderY = 40 - length * 0.42;
+	const tipControlY = tipY + length * 0.18;
+
+	return [
+		'M 40 42',
+		`C ${formatSvgNumber(40 - width)} ${formatSvgNumber(shoulderY)} ${formatSvgNumber(tipX - width * 0.42)} ${formatSvgNumber(tipControlY)} ${formatSvgNumber(tipX)} ${formatSvgNumber(tipY)}`,
+		`C ${formatSvgNumber(tipX + width * 0.42)} ${formatSvgNumber(tipControlY)} ${formatSvgNumber(40 + width)} ${formatSvgNumber(shoulderY)} 40 42`,
+		'Z',
+	].join(' ');
+}
+
+function createAuroraPaint(size: number, hash: number, id: string): { background: string; foreground: string; defs: string; layers: string } {
+	const random = createDeterministicRandom(hashString(`${hash}:aurora`));
+	const palette = auroraPalettes[randomInteger(random, 0, auroraPalettes.length - 1)];
+	const veilCount = randomInteger(random, 3, 5);
+	const amplitude = randomBetween(random, 8, 14);
+	const cycles = [0.75, 1, 1.25][randomInteger(random, 0, 2)];
+	const phase = randomBetween(random, 0, Math.PI * 2);
+	const phaseStep = randomBetween(random, 0.68, 1.12);
+	const rotation = randomBetween(random, -26, 26);
+	const scale = size / 80;
+	const gradients: string[] = [];
+	const veils: string[] = [];
+	const ambientX = randomBetween(random, 25, 55);
+	const ambientY = randomBetween(random, 24, 56);
+
+	for (let index = 0; index < veilCount; index++) {
+		const centerY = 4 + index * (72 / Math.max(1, veilCount - 1));
+		const thickness = randomBetween(random, veilCount === 5 ? 13 : 16, veilCount === 3 ? 24 : 20);
+		const layerPhase = phase + index * phaseStep;
+		const path = createAuroraBandPath(centerY, amplitude, thickness, layerPhase, cycles);
+		const gradientId = `${id}-aurora-${index}`;
+		const colors = [
+			palette.colors[index % palette.colors.length],
+			palette.colors[(index + 1) % palette.colors.length],
+			palette.colors[(index + 2) % palette.colors.length],
+			palette.colors[(index + 3) % palette.colors.length],
+		] as const;
+
+		gradients.push(createAuroraGradient(gradientId, colors));
+		veils.push(
+			`<path data-veil="${index}" d="${path}" fill="url(#${gradientId})" fill-opacity="${formatSvgNumber(randomBetween(random, 0.58, 0.78))}" stroke="${colors[1]}" stroke-opacity="0.2" stroke-width="0.8" filter="url(#${id}-aurora-glow)" style="mix-blend-mode: screen"/>`,
+		);
+	}
+
+	return {
+		background: palette.background,
+		foreground: palette.foreground,
+		defs: `${gradients.join('\n    ')}
+    <radialGradient id="${id}-aurora-ambient">
+      <stop offset="0%" stop-color="${palette.colors[1]}" stop-opacity="0.34"/>
+      <stop offset="55%" stop-color="${palette.colors[2]}" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="${palette.background}" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="${id}-aurora-glow" x="-25%" y="-35%" width="150%" height="170%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="1.35" result="soft"/>
+      <feMerge>
+        <feMergeNode in="soft"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>`,
+		layers: `<g transform="scale(${formatSvgNumber(scale)})">
+    <circle cx="${formatSvgNumber(ambientX)}" cy="${formatSvgNumber(ambientY)}" r="48" fill="url(#${id}-aurora-ambient)"/>
+    <g data-generated="aurora" data-veils="${veilCount}" data-cycles="${cycles}" transform="rotate(${formatSvgNumber(rotation)} 40 40)">
+      ${veils.join('\n      ')}
+    </g>
+  </g>`,
+	};
+}
+
+function createAuroraGradient(id: string, colors: readonly [string, string, string, string]): string {
+	return `<linearGradient id="${id}" x1="0%" y1="18%" x2="100%" y2="82%">
+      <stop offset="0%" stop-color="${colors[0]}" stop-opacity="0.18"/>
+      <stop offset="30%" stop-color="${colors[1]}" stop-opacity="0.96"/>
+      <stop offset="67%" stop-color="${colors[2]}" stop-opacity="0.88"/>
+      <stop offset="100%" stop-color="${colors[3]}" stop-opacity="0.2"/>
+    </linearGradient>`;
+}
+
+function createAuroraBandPath(centerY: number, amplitude: number, thickness: number, phase: number, cycles: number): string {
+	const pointCount = 11;
+	const top = Array.from({ length: pointCount }, (_, index) => {
+		const progress = index / (pointCount - 1);
+		const x = -32 + progress * 144;
+		const wave = Math.sin(progress * Math.PI * 2 * cycles + phase) * amplitude;
+
+		return { x, y: centerY - thickness / 2 + wave };
+	});
+	const bottom = Array.from({ length: pointCount }, (_, index) => {
+		const progress = index / (pointCount - 1);
+		const x = -32 + progress * 144;
+		const wave = Math.sin(progress * Math.PI * 2 * cycles + phase) * amplitude;
+		const drift = Math.sin(progress * Math.PI * 2 + phase * 0.65) * thickness * 0.12;
+
+		return { x, y: centerY + thickness / 2 + wave + drift };
+	}).reverse();
+
+	return `${createSmoothPath(top)} L ${formatSvgNumber(bottom[0].x)} ${formatSvgNumber(bottom[0].y)} ${createSmoothCurveCommands(bottom).join(' ')} Z`;
+}
+
+function createOrbitPaint(size: number, hash: number, id: string): { background: string; foreground: string; defs: string; layers: string } {
+	const random = createDeterministicRandom(hashString(`${hash}:orbit`));
+	const palette = orbitPalettes[randomInteger(random, 0, orbitPalettes.length - 1)];
+	const orbitCount = randomInteger(random, 3, 5);
+	const centerX = randomBetween(random, 37, 43);
+	const centerY = randomBetween(random, 37, 43);
+	const baseRotation = randomBetween(random, 0, 180);
+	const eccentricity = randomBetween(random, 0.38, 0.62);
+	const trackWidth = randomBetween(random, 1.8, 2.8);
+	const centerRadius = randomBetween(random, 4.6, 6.8);
+	const scale = size / 80;
+	const defs: string[] = [];
+	const tracks: string[] = [];
+	const pearls: string[] = [];
+
+	for (let index = 0; index < orbitCount; index++) {
+		const progress = orbitCount === 1 ? 0 : index / (orbitCount - 1);
+		const radiusX = 17 + progress * 18;
+		const radiusY = radiusX * Math.min(0.72, eccentricity + index * 0.035);
+		const rotation = baseRotation + index * (180 / orbitCount) + randomBetween(random, -7, 7);
+		const gradientId = `${id}-orbit-${index}`;
+		const pearlId = `${id}-orbit-pearl-${index}`;
+		const start = palette.colors[index % palette.colors.length];
+		const middle = palette.colors[(index + 1) % palette.colors.length];
+		const end = palette.colors[(index + 2) % palette.colors.length];
+		const pearlAngle = randomBetween(random, 0, 360);
+		const pearlPoint = createRotatedEllipsePoint(centerX, centerY, radiusX, radiusY, pearlAngle, rotation);
+		const pearlRadius = randomBetween(random, 2.4, index === orbitCount - 1 ? 4.1 : 3.5);
+
+		defs.push(createShapeGradient(gradientId, rotation + 32, start, middle, end));
+		defs.push(`<radialGradient id="${pearlId}" cx="34%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="32%" stop-color="${middle}"/>
+      <stop offset="100%" stop-color="${start}"/>
+    </radialGradient>`);
+		tracks.push(`<g data-orbit="${index}" transform="rotate(${formatSvgNumber(rotation)} ${formatSvgNumber(centerX)} ${formatSvgNumber(centerY)})">
+        <ellipse cx="${formatSvgNumber(centerX)}" cy="${formatSvgNumber(centerY)}" rx="${formatSvgNumber(radiusX)}" ry="${formatSvgNumber(radiusY)}" fill="none" stroke="${palette.background}" stroke-width="${formatSvgNumber(trackWidth + 1.8)}" stroke-opacity="0.88"/>
+        <ellipse cx="${formatSvgNumber(centerX)}" cy="${formatSvgNumber(centerY)}" rx="${formatSvgNumber(radiusX)}" ry="${formatSvgNumber(radiusY)}" fill="none" stroke="url(#${gradientId})" stroke-width="${formatSvgNumber(trackWidth)}" stroke-linecap="round"/>
+        <ellipse cx="${formatSvgNumber(centerX)}" cy="${formatSvgNumber(centerY)}" rx="${formatSvgNumber(radiusX)}" ry="${formatSvgNumber(radiusY)}" fill="none" stroke="#FFFFFF" stroke-width="0.5" stroke-opacity="0.28"/>
+      </g>`);
+		pearls.push(`<g data-pearl="${index}" filter="url(#${id}-orbit-glow)">
+        <circle cx="${formatSvgNumber(pearlPoint.x)}" cy="${formatSvgNumber(pearlPoint.y)}" r="${formatSvgNumber(pearlRadius + 1.1)}" fill="${palette.background}" fill-opacity="0.78"/>
+        <circle cx="${formatSvgNumber(pearlPoint.x)}" cy="${formatSvgNumber(pearlPoint.y)}" r="${formatSvgNumber(pearlRadius)}" fill="url(#${pearlId})" stroke="#FFFFFF" stroke-opacity="0.6" stroke-width="0.65"/>
+      </g>`);
+	}
+
+	return {
+		background: palette.background,
+		foreground: palette.foreground,
+		defs: `${defs.join('\n    ')}
+    <radialGradient id="${id}-orbit-center" cx="34%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="38%" stop-color="${palette.colors[2]}"/>
+      <stop offset="100%" stop-color="${palette.colors[0]}"/>
+    </radialGradient>
+    <radialGradient id="${id}-orbit-halo">
+      <stop offset="0%" stop-color="${palette.colors[1]}" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="${palette.colors[1]}" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="${id}-orbit-glow" x="-80%" y="-80%" width="260%" height="260%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="0.8" stdDeviation="1.25" flood-color="${palette.colors[1]}" flood-opacity="0.42"/>
+    </filter>`,
+		layers: `<g transform="scale(${formatSvgNumber(scale)})">
+    <g data-generated="orbit" data-orbits="${orbitCount}">
+      <circle cx="${formatSvgNumber(centerX)}" cy="${formatSvgNumber(centerY)}" r="37" fill="url(#${id}-orbit-halo)"/>
+      ${tracks.join('\n      ')}
+      ${pearls.join('\n      ')}
+      <circle cx="${formatSvgNumber(centerX)}" cy="${formatSvgNumber(centerY)}" r="${formatSvgNumber(centerRadius + 1.4)}" fill="${palette.background}" fill-opacity="0.8"/>
+      <circle cx="${formatSvgNumber(centerX)}" cy="${formatSvgNumber(centerY)}" r="${formatSvgNumber(centerRadius)}" fill="url(#${id}-orbit-center)" stroke="#FFFFFF" stroke-opacity="0.58" stroke-width="0.75" filter="url(#${id}-orbit-glow)"/>
+    </g>
+  </g>`,
+	};
+}
+
+function createRotatedEllipsePoint(
+	centerX: number,
+	centerY: number,
+	radiusX: number,
+	radiusY: number,
+	angle: number,
+	rotation: number,
+): { x: number; y: number } {
+	const angleRadians = (angle * Math.PI) / 180;
+	const rotationRadians = (rotation * Math.PI) / 180;
+	const localX = radiusX * Math.cos(angleRadians);
+	const localY = radiusY * Math.sin(angleRadians);
+
+	return {
+		x: centerX + localX * Math.cos(rotationRadians) - localY * Math.sin(rotationRadians),
+		y: centerY + localX * Math.sin(rotationRadians) + localY * Math.cos(rotationRadians),
+	};
+}
+
+function createCrystalPaint(size: number, hash: number, id: string): { background: string; foreground: string; defs: string; layers: string } {
+	const random = createDeterministicRandom(hashString(`${hash}:crystal`));
+	const palette = crystalPalettes[randomInteger(random, 0, crystalPalettes.length - 1)];
+	const symmetry = randomInteger(random, 5, 8);
+	const step = 360 / symmetry;
+	const rotation = randomBetween(random, 0, step);
+	const innerRadius = randomBetween(random, 8, 11.5);
+	const middleRadius = randomBetween(random, 19, 24);
+	const outerRadius = randomBetween(random, 31, 35);
+	const innerTwist = randomBetween(random, -step * 0.18, step * 0.18);
+	const middleTwist = randomBetween(random, -step * 0.12, step * 0.12);
+	const scaleX = randomBetween(random, 0.9, 1.06);
+	const scaleY = randomBetween(random, 0.9, 1.06);
+	const scale = size / 80;
+	const innerPoints = createCrystalRing(symmetry, innerRadius, rotation + innerTwist, scaleX, scaleY);
+	const middlePoints = createCrystalRing(symmetry, middleRadius, rotation + middleTwist, scaleX, scaleY);
+	const outerPoints = createCrystalRing(symmetry, outerRadius, rotation, scaleX, scaleY);
+	const gradients: string[] = [];
+	const facets: string[] = [];
+	let facetIndex = 0;
+
+	for (let ring = 0; ring < 2; ring++) {
+		const innerRing = ring === 0 ? innerPoints : middlePoints;
+		const outerRing = ring === 0 ? middlePoints : outerPoints;
+
+		for (let index = 0; index < symmetry; index++) {
+			const next = (index + 1) % symmetry;
+			const gradientId = `${id}-crystal-${facetIndex}`;
+			const start = palette.colors[(index + ring) % palette.colors.length];
+			const middle = palette.colors[(index + ring + 1) % palette.colors.length];
+			const end = palette.colors[(index + ring + 2) % palette.colors.length];
+			const points = [innerRing[index], innerRing[next], outerRing[next], outerRing[index]];
+
+			gradients.push(createShapeGradient(gradientId, rotation + index * step + ring * 41, start, middle, end));
+			facets.push(
+				`<polygon data-facet="${facetIndex}" points="${formatSvgPoints(points)}" fill="url(#${gradientId})" stroke="${palette.background}" stroke-opacity="0.68" stroke-width="0.75"/>`,
+			);
+			facetIndex++;
+		}
+	}
+
+	const centerGradientId = `${id}-crystal-center`;
+	gradients.push(createShapeGradient(centerGradientId, rotation + 90, palette.colors[3], palette.colors[1], palette.colors[0]));
+
+	return {
+		background: palette.background,
+		foreground: palette.foreground,
+		defs: `${gradients.join('\n    ')}
+    <radialGradient id="${id}-crystal-halo">
+      <stop offset="0%" stop-color="${palette.colors[1]}" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="${palette.colors[1]}" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="${id}-crystal-shadow" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.8" flood-color="#17132F" flood-opacity="0.22"/>
+    </filter>`,
+		layers: `<g transform="scale(${formatSvgNumber(scale)})">
+    <circle cx="40" cy="40" r="38" fill="url(#${id}-crystal-halo)"/>
+    <g data-generated="crystal" data-symmetry="${symmetry}" data-facets="${facetIndex + 1}" filter="url(#${id}-crystal-shadow)">
+      ${facets.join('\n      ')}
+      <polygon data-facet="${facetIndex}" points="${formatSvgPoints(innerPoints)}" fill="url(#${centerGradientId})" stroke="${palette.background}" stroke-opacity="0.7" stroke-width="0.8"/>
+      <polygon points="${formatSvgPoints(outerPoints)}" fill="none" stroke="#FFFFFF" stroke-opacity="0.38" stroke-width="0.9"/>
+    </g>
+  </g>`,
+	};
+}
+
+function createCrystalRing(count: number, radius: number, rotation: number, scaleX: number, scaleY: number): { x: number; y: number }[] {
+	return Array.from({ length: count }, (_, index) => {
+		const angle = ((rotation + index * (360 / count)) * Math.PI) / 180;
+
+		return {
+			x: 40 + Math.cos(angle) * radius * scaleX,
+			y: 40 + Math.sin(angle) * radius * scaleY,
+		};
+	});
+}
+
+function formatSvgPoints(points: readonly { x: number; y: number }[]): string {
+	return points.map((point) => `${formatSvgNumber(point.x)},${formatSvgNumber(point.y)}`).join(' ');
+}
+
+function createRibbonsPaint(size: number, hash: number, id: string): { background: string; foreground: string; defs: string; layers: string } {
+	const random = createDeterministicRandom(hashString(`${hash}:ribbons`));
+	const palette = ribbonPalettes[randomInteger(random, 0, ribbonPalettes.length - 1)];
+	const ribbonCount = randomInteger(random, 3, 5);
+	const spacing = ribbonCount === 3 ? 15 : ribbonCount === 4 ? 13 : 11;
+	const amplitude = spacing * randomBetween(random, 0.64, 0.88);
+	const cycles = [1, 1.25, 1.5][randomInteger(random, 0, 2)];
+	const phase = randomBetween(random, 0, Math.PI * 2);
+	const phaseStep = randomBetween(random, Math.PI * 0.56, Math.PI * 0.78);
+	const rotation = randomBetween(random, -48, 48);
+	const ribbonWidth = randomBetween(random, ribbonCount === 5 ? 5.2 : 6.2, ribbonCount === 3 ? 8.4 : 7.2);
+	const outlineWidth = ribbonWidth + randomBetween(random, 2.8, 3.8);
+	const scale = size / 80;
+	const gradients: string[] = [];
+	const ribbons: string[] = [];
+
+	for (let index = 0; index < ribbonCount; index++) {
+		const baseY = 40 + (index - (ribbonCount - 1) / 2) * spacing;
+		const path = createRibbonPath(baseY, amplitude, phase + index * phaseStep, cycles);
+		const gradientId = `${id}-ribbon-${index}`;
+		const start = palette.colors[index % palette.colors.length];
+		const middle = palette.colors[(index + 1) % palette.colors.length];
+		const end = palette.colors[(index + 2) % palette.colors.length];
+
+		gradients.push(createShapeGradient(gradientId, rotation + 18 + index * 29, start, middle, end));
+		ribbons.push(`<g data-ribbon="${index}">
+        <path d="${path}" fill="none" stroke="${palette.background}" stroke-width="${formatSvgNumber(outlineWidth)}" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="${path}" fill="none" stroke="url(#${gradientId})" stroke-width="${formatSvgNumber(ribbonWidth)}" stroke-linecap="round" stroke-linejoin="round" filter="url(#${id}-ribbon-shadow)"/>
+        <path d="${path}" fill="none" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="${formatSvgNumber(Math.max(0.8, ribbonWidth * 0.15))}" stroke-linecap="round"/>
+      </g>`);
+	}
+
+	return {
+		background: palette.background,
+		foreground: palette.foreground,
+		defs: `${gradients.join('\n    ')}
+    <filter id="${id}-ribbon-shadow" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="1.2" stdDeviation="1.1" flood-color="#17132F" flood-opacity="0.2"/>
+    </filter>`,
+		layers: `<g transform="scale(${formatSvgNumber(scale)})">
+    <g data-generated="ribbons" data-ribbons="${ribbonCount}" data-cycles="${cycles}" transform="rotate(${formatSvgNumber(rotation)} 40 40)">
+      ${ribbons.join('\n      ')}
+    </g>
+  </g>`,
+	};
+}
+
+function createRibbonPath(baseY: number, amplitude: number, phase: number, cycles: number): string {
+	const pointCount = 13;
+	const points = Array.from({ length: pointCount }, (_, index) => {
+		const progress = index / (pointCount - 1);
+		const x = -28 + progress * 136;
+		const taper = 0.88 + Math.sin(progress * Math.PI) * 0.12;
+		const y = baseY + Math.sin(progress * Math.PI * 2 * cycles + phase) * amplitude * taper;
+
+		return { x, y };
+	});
+	return createSmoothPath(points);
+}
+
+function createSmoothPath(points: readonly { x: number; y: number }[]): string {
+	return `M ${formatSvgNumber(points[0].x)} ${formatSvgNumber(points[0].y)} ${createSmoothCurveCommands(points).join(' ')}`;
+}
+
+function createSmoothCurveCommands(points: readonly { x: number; y: number }[]): string[] {
+	const commands: string[] = [];
+
+	for (let index = 0; index < points.length - 1; index++) {
+		const before = points[Math.max(0, index - 1)];
+		const current = points[index];
+		const next = points[index + 1];
+		const after = points[Math.min(points.length - 1, index + 2)];
+		const controlOneX = current.x + (next.x - before.x) / 6;
+		const controlOneY = current.y + (next.y - before.y) / 6;
+		const controlTwoX = next.x - (after.x - current.x) / 6;
+		const controlTwoY = next.y - (after.y - current.y) / 6;
+
+		commands.push(
+			`C ${formatSvgNumber(controlOneX)} ${formatSvgNumber(controlOneY)} ${formatSvgNumber(controlTwoX)} ${formatSvgNumber(controlTwoY)} ${formatSvgNumber(next.x)} ${formatSvgNumber(next.y)}`,
+		);
+	}
+
+	return commands;
 }
 
 function createShapesPaint(size: number, hash: number, id: string): { background: string; foreground: string; defs: string; layers: string } {
