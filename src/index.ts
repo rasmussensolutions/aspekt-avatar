@@ -1,4 +1,4 @@
-type Variant = 'aurora' | 'bloom' | 'crystal' | 'glass' | 'gradient' | 'grid' | 'orbit' | 'ribbons' | 'shapes' | 'solid' | 'triangles';
+type Variant = 'aurora' | 'bloom' | 'crystal' | 'faces' | 'glass' | 'gradient' | 'grid' | 'orbit' | 'ribbons' | 'shapes' | 'solid' | 'triangles';
 
 type SolidPalette = {
 	background: string;
@@ -57,7 +57,12 @@ type CrystalPalette = {
 	foreground: string;
 };
 
-const variants = ['aurora', 'bloom', 'crystal', 'glass', 'gradient', 'grid', 'orbit', 'ribbons', 'shapes', 'solid', 'triangles'] as const satisfies readonly Variant[];
+type FacePalette = {
+	colors: readonly [string, string, string];
+	foreground: string;
+};
+
+const variants = ['aurora', 'bloom', 'crystal', 'faces', 'glass', 'gradient', 'grid', 'orbit', 'ribbons', 'shapes', 'solid', 'triangles'] as const satisfies readonly Variant[];
 
 const solidPalettes = [
 	{ background: '#E7C269', foreground: '#6F4700', accent: '#F2B94B' },
@@ -147,6 +152,15 @@ const crystalPalettes = [
 	{ background: '#181526', colors: ['#A17DF2', '#5DB8EF', '#55D7B0', '#EE76B2'], foreground: '#FFFFFF' },
 	{ background: '#FFF9E9', colors: ['#E8992D', '#F2CF4E', '#EC7371', '#A665D8'], foreground: '#FFFFFF' },
 ] as const satisfies readonly CrystalPalette[];
+
+const facePalettes = [
+	{ colors: ['#B994FF', '#8158F3', '#6840D8'], foreground: '#FFFFFF' },
+	{ colors: ['#78C5FF', '#358FE8', '#2468C6'], foreground: '#FFFFFF' },
+	{ colors: ['#FF8AD0', '#DE42A8', '#B62A89'], foreground: '#FFFFFF' },
+	{ colors: ['#FF8A82', '#F24940', '#CC302C'], foreground: '#FFFFFF' },
+	{ colors: ['#FFBE6B', '#F58A24', '#D96813'], foreground: '#FFFFFF' },
+	{ colors: ['#74DFC8', '#28AB98', '#168174'], foreground: '#FFFFFF' },
+] as const satisfies readonly FacePalette[];
 
 const gridColors = ['#00686c', '#ff9915', '#32c2b9', '#edecb3', '#fad928'] as const;
 
@@ -286,6 +300,10 @@ function createDocsResponse(origin: string): Response {
 				description: 'Seeded radial gemstones assembled from connected facet rings and piece-specific gradients.',
 			},
 			{
+				name: 'faces',
+				description: 'Friendly seeded faces with glossy color and minimal expressive eyes filling the avatar surface.',
+			},
+			{
 				name: 'gradient',
 				description: 'Soft abstract gradient shapes generated from the seed.',
 				default_for_seed_urls: true,
@@ -353,6 +371,7 @@ function createDocsResponse(origin: string): Response {
 			`${origin}/aurora/nova-river?size=256&radius=full`,
 			`${origin}/bloom/nova-river?size=256&radius=full`,
 			`${origin}/crystal/nova-river?size=256&radius=full`,
+			`${origin}/faces/nova-river?size=256&radius=full`,
 			`${origin}/solid/nova-river`,
 			`${origin}/gradient/nova-river?size=256&radius=full`,
 			`${origin}/glass/nova-river?size=256&radius=full`,
@@ -394,6 +413,7 @@ function createAvatarSvg(options: {
 		(variant === 'aurora' ||
 			variant === 'bloom' ||
 			variant === 'crystal' ||
+			variant === 'faces' ||
 			variant === 'grid' ||
 			variant === 'orbit' ||
 			variant === 'ribbons' ||
@@ -447,6 +467,8 @@ function createPaint(
 			return createBloomPaint(size, hash, id);
 		case 'crystal':
 			return createCrystalPaint(size, hash, id);
+		case 'faces':
+			return createFacesPaint(size, hash, id);
 		case 'glass':
 			return createGlassPaint(size, hash, id, radius);
 		case 'gradient':
@@ -541,6 +563,55 @@ function createPetalPath(length: number, width: number, tipLean: number): string
 		`C ${formatSvgNumber(tipX + width * 0.42)} ${formatSvgNumber(tipControlY)} ${formatSvgNumber(40 + width)} ${formatSvgNumber(shoulderY)} 40 42`,
 		'Z',
 	].join(' ');
+}
+
+function createFacesPaint(size: number, hash: number, id: string): { background: string; foreground: string; defs: string; layers: string } {
+	const random = createDeterministicRandom(hashString(`${hash}:faces`));
+	const palette = facePalettes[randomInteger(random, 0, facePalettes.length - 1)];
+	const expression = randomInteger(random, 0, 3);
+	const scale = size / 80;
+	const eyeCenterY = randomBetween(random, 37, 42);
+	const eyeSpacing = randomBetween(random, 9, 12);
+	const expressionSettings = [
+		{ width: 5.2, height: 9.5, leftRotation: -4, rightRotation: 4 },
+		{ width: 8.5, height: 4.4, leftRotation: 14, rightRotation: -14 },
+		{ width: 5.4, height: 9, leftRotation: -14, rightRotation: -6 },
+		{ width: 5.2, height: 6.6, leftRotation: 2, rightRotation: -2 },
+	] as const;
+	const eyes = expressionSettings[expression];
+	const leftX = 40 - eyeSpacing;
+	const rightX = 40 + eyeSpacing;
+	const eye = (side: 'left' | 'right', centerX: number, eyeRotation: number) => {
+		const x = centerX - eyes.width / 2;
+		const y = eyeCenterY - eyes.height / 2;
+
+		return `<rect data-eye="${side}" x="${formatSvgNumber(x)}" y="${formatSvgNumber(y)}" width="${formatSvgNumber(eyes.width)}" height="${formatSvgNumber(eyes.height)}" rx="${formatSvgNumber(Math.min(eyes.width, eyes.height) / 2)}" fill="#FFFFFF" fill-opacity="0.94" transform="rotate(${formatSvgNumber(eyeRotation)} ${formatSvgNumber(centerX)} ${formatSvgNumber(eyeCenterY)})" filter="url(#${id}-face-eye-glow)"/>`;
+	};
+
+	return {
+		background: `url(#${id}-face-body)`,
+		foreground: palette.foreground,
+		defs: `<linearGradient id="${id}-face-body" x1="12%" y1="8%" x2="88%" y2="92%">
+      <stop offset="0%" stop-color="${palette.colors[0]}"/>
+      <stop offset="58%" stop-color="${palette.colors[1]}"/>
+      <stop offset="100%" stop-color="${palette.colors[2]}"/>
+    </linearGradient>
+    <radialGradient id="${id}-face-shine" cx="28%" cy="20%" r="54%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.7"/>
+      <stop offset="48%" stop-color="#FFFFFF" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="${id}-face-eye-glow" x="-80%" y="-50%" width="260%" height="200%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.7" flood-color="#FFFFFF" flood-opacity="0.6"/>
+    </filter>`,
+		layers: `<g transform="scale(${formatSvgNumber(scale)})">
+	<g data-generated="faces" data-face-surface="full" data-expression="${expression}">
+	  <rect width="80" height="80" fill="url(#${id}-face-shine)"/>
+      ${eye('left', leftX, eyes.leftRotation)}
+      ${eye('right', rightX, eyes.rightRotation)}
+    </g>
+  </g>`,
+	};
 }
 
 function createAuroraPaint(size: number, hash: number, id: string): { background: string; foreground: string; defs: string; layers: string } {
