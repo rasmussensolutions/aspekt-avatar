@@ -1,4 +1,4 @@
-type Variant = 'aurora' | 'bloom' | 'crystal' | 'faces' | 'glass' | 'gradient' | 'grid' | 'orbit' | 'ribbons' | 'shapes' | 'solid' | 'triangles';
+type Variant = 'aurora' | 'bloom' | 'crystal' | 'faces' | 'glass' | 'gradient' | 'grid' | 'orbit' | 'portrait' | 'ribbons' | 'shapes' | 'solid' | 'triangles';
 
 type SolidPalette = {
 	background: string;
@@ -62,7 +62,15 @@ type FacePalette = {
 	foreground: string;
 };
 
-const variants = ['aurora', 'bloom', 'crystal', 'faces', 'glass', 'gradient', 'grid', 'orbit', 'ribbons', 'shapes', 'solid', 'triangles'] as const satisfies readonly Variant[];
+type PortraitPalette = {
+	background: string;
+	plane: string;
+	ink: string;
+	accent: string;
+	foreground: string;
+};
+
+const variants = ['aurora', 'bloom', 'crystal', 'faces', 'glass', 'gradient', 'grid', 'orbit', 'portrait', 'ribbons', 'shapes', 'solid', 'triangles'] as const satisfies readonly Variant[];
 
 const solidPalettes = [
 	{ background: '#E7C269', foreground: '#6F4700', accent: '#F2B94B' },
@@ -161,6 +169,15 @@ const facePalettes = [
 	{ colors: ['#FFBE6B', '#F58A24', '#D96813'], foreground: '#FFFFFF' },
 	{ colors: ['#74DFC8', '#28AB98', '#168174'], foreground: '#FFFFFF' },
 ] as const satisfies readonly FacePalette[];
+
+const portraitPalettes = [
+	{ background: '#FFE6C7', plane: '#FF8A65', ink: '#57213A', accent: '#FFF8E9', foreground: '#FFFFFF' },
+	{ background: '#A9D8FF', plane: '#4F73E8', ink: '#17245A', accent: '#FFFFFF', foreground: '#FFFFFF' },
+	{ background: '#BDEBD5', plane: '#3BB8A0', ink: '#123E3A', accent: '#FFFDF4', foreground: '#FFFFFF' },
+	{ background: '#FFE36E', plane: '#FF9E45', ink: '#53311C', accent: '#FFF9DD', foreground: '#FFFFFF' },
+	{ background: '#F7B6DE', plane: '#A768E8', ink: '#4A235E', accent: '#FFF7FC', foreground: '#FFFFFF' },
+	{ background: '#8D91F4', plane: '#43D6D0', ink: '#172354', accent: '#FFFFFF', foreground: '#FFFFFF' },
+] as const satisfies readonly PortraitPalette[];
 
 const gridColors = ['#00686c', '#ff9915', '#32c2b9', '#edecb3', '#fad928'] as const;
 
@@ -325,6 +342,10 @@ function createDocsResponse(origin: string): Response {
 				description: 'Seeded elliptical systems with gradient tracks, luminous pearls, and a shared center.',
 			},
 			{
+				name: 'portrait',
+				description: 'Abstract flat-color faces made from a seeded color split, two geometric eye marks, and one expressive mouth.',
+			},
+			{
 				name: 'ribbons',
 				description: 'Smooth seeded ribbon weaves with coordinated curves, crossings, and satin gradients.',
 			},
@@ -377,6 +398,7 @@ function createDocsResponse(origin: string): Response {
 			`${origin}/glass/nova-river?size=256&radius=full`,
 			`${origin}/grid/nova-river?initials`,
 			`${origin}/orbit/nova-river?size=256&radius=full`,
+			`${origin}/portrait/nova-river?size=256&radius=full`,
 			`${origin}/ribbons/nova-river?size=256&radius=full`,
 			`${origin}/shapes/nova-river?size=256&radius=full`,
 			`${origin}/triangles/nova-river?size=256&radius=full`,
@@ -416,6 +438,7 @@ function createAvatarSvg(options: {
 			variant === 'faces' ||
 			variant === 'grid' ||
 			variant === 'orbit' ||
+			variant === 'portrait' ||
 			variant === 'ribbons' ||
 			variant === 'shapes' ||
 			variant === 'triangles');
@@ -477,6 +500,8 @@ function createPaint(
 			return createGridPaint(size, hash);
 		case 'orbit':
 			return createOrbitPaint(size, hash, id);
+		case 'portrait':
+			return createPortraitPaint(size, hash);
 		case 'ribbons':
 			return createRibbonsPaint(size, hash, id);
 		case 'shapes':
@@ -610,6 +635,57 @@ function createFacesPaint(size: number, hash: number, id: string): { background:
       ${eye('left', leftX, eyes.leftRotation)}
       ${eye('right', rightX, eyes.rightRotation)}
     </g>
+  </g>`,
+	};
+}
+
+function createPortraitPaint(size: number, hash: number): { background: string; foreground: string; defs: string; layers: string } {
+	const random = createDeterministicRandom(hashString(`${hash}:portrait`));
+	const palette = portraitPalettes[randomInteger(random, 0, portraitPalettes.length - 1)];
+	const expression = randomInteger(random, 0, 3);
+	const scale = size / 80;
+	const eyeCenterY = randomBetween(random, 35, 39);
+	const eyeSpacing = randomBetween(random, 10.5, 13);
+	const planeAtLeft = random() > 0.5;
+	const planeEdgeTop = randomBetween(random, 25, 37);
+	const planeEdgeBottom = randomBetween(random, 32, 46);
+	const leftX = 40 - eyeSpacing;
+	const rightX = 40 + eyeSpacing;
+	const plane = planeAtLeft
+		? `M 0 0 H ${formatSvgNumber(planeEdgeTop)} C ${formatSvgNumber(planeEdgeTop + 6)} 24 ${formatSvgNumber(planeEdgeBottom - 7)} 56 ${formatSvgNumber(planeEdgeBottom)} 80 H 0 Z`
+		: `M ${formatSvgNumber(80 - planeEdgeTop)} 0 H 80 V 80 H ${formatSvgNumber(80 - planeEdgeBottom)} C ${formatSvgNumber(87 - planeEdgeBottom)} 56 ${formatSvgNumber(74 - planeEdgeTop)} 24 ${formatSvgNumber(80 - planeEdgeTop)} 0 Z`;
+	const eye = (side: 'left' | 'right', centerX: number) => {
+		switch (expression) {
+			case 0:
+				return `<circle data-eye="${side}" cx="${formatSvgNumber(centerX)}" cy="${formatSvgNumber(eyeCenterY)}" r="4.2" fill="${palette.ink}"/>`;
+			case 1:
+				return `<path data-eye="${side}" d="M ${formatSvgNumber(centerX - 5)} ${formatSvgNumber(eyeCenterY + 1)} Q ${formatSvgNumber(centerX)} ${formatSvgNumber(eyeCenterY - 5)} ${formatSvgNumber(centerX + 5)} ${formatSvgNumber(eyeCenterY + 1)}" fill="none" stroke="${palette.ink}" stroke-width="3.4" stroke-linecap="round"/>`;
+			case 2: {
+				const rotation = side === 'left' ? -12 : 12;
+				return `<rect data-eye="${side}" x="${formatSvgNumber(centerX - 4.5)}" y="${formatSvgNumber(eyeCenterY - 2)}" width="9" height="4" rx="2" fill="${palette.ink}" transform="rotate(${rotation} ${formatSvgNumber(centerX)} ${formatSvgNumber(eyeCenterY)})"/>`;
+			}
+			case 3:
+				return `<ellipse data-eye="${side}" cx="${formatSvgNumber(centerX)}" cy="${formatSvgNumber(eyeCenterY)}" rx="2.9" ry="5.8" fill="${palette.ink}"/>`;
+		}
+	};
+	const mouths = [
+		`<path data-mouth="smile" d="M 31 55 Q 40 64 49 55" fill="none" stroke="${palette.accent}" stroke-width="3.6" stroke-linecap="round"/>`,
+		`<ellipse data-mouth="open" cx="40" cy="58" rx="4.8" ry="6" fill="${palette.accent}"/>`,
+		`<path data-mouth="smirk" d="M 32 58 Q 41 61 49 54" fill="none" stroke="${palette.accent}" stroke-width="3.6" stroke-linecap="round"/>`,
+		`<rect data-mouth="neutral" x="34" y="56" width="12" height="3.6" rx="1.8" fill="${palette.accent}"/>`,
+	] as const;
+
+	return {
+		background: palette.background,
+		foreground: palette.foreground,
+		defs: '',
+		layers: `<g transform="scale(${formatSvgNumber(scale)})">
+	<g data-generated="portrait" data-face-surface="full" data-feature-count="3" data-expression="${expression}">
+	  <path data-portrait-plane="${planeAtLeft ? 'left' : 'right'}" d="${plane}" fill="${palette.plane}"/>
+	  ${eye('left', leftX)}
+	  ${eye('right', rightX)}
+	  ${mouths[expression]}
+	</g>
   </g>`,
 	};
 }

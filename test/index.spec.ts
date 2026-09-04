@@ -53,6 +53,7 @@ describe("avatar worker", () => {
 			"solid",
 			"grid",
 			"orbit",
+			"portrait",
 			"ribbons",
 			"shapes",
 			"triangles",
@@ -67,6 +68,7 @@ describe("avatar worker", () => {
 		expect(examples).toContain("https://avatar.aspekt.systems/gradient/nova-river?size=256&radius=full");
 		expect(examples).toContain("https://avatar.aspekt.systems/glass/nova-river?size=256&radius=full");
 		expect(examples).toContain("https://avatar.aspekt.systems/orbit/nova-river?size=256&radius=full");
+		expect(examples).toContain("https://avatar.aspekt.systems/portrait/nova-river?size=256&radius=full");
 		expect(examples).toContain("https://avatar.aspekt.systems/ribbons/nova-river?size=256&radius=full");
 		expect(examples).toContain("https://avatar.aspekt.systems/shapes/nova-river?size=256&radius=full");
 		expect(examples).toContain("https://avatar.aspekt.systems/triangles/nova-river?size=256&radius=full");
@@ -212,11 +214,51 @@ describe("avatar worker", () => {
 		expect(colors.size).toBeGreaterThan(1);
 	});
 
-	it("keeps initials legible on face avatars", async () => {
-		const svg = await readSvg(await SELF.fetch("https://avatar.aspekt.systems/faces/nova-river?initials"));
+	it("supports portrait variant URLs as abstract three-feature faces", async () => {
+		const response = await SELF.fetch("https://avatar.aspekt.systems/portrait/nova-river?radius=full");
+		const svg = await readSvg(response);
 
-		expect(svg).toContain(">NR</text>");
-		expect(svg).toContain('<rect width="128" height="128" fill="#000000" opacity="0.28"/>');
+		expect(svg).toContain('aria-label="nova-river"');
+		expect(svg).toContain('data-generated="portrait"');
+		expect(svg).toContain('data-face-surface="full"');
+		expect(svg).toContain('data-feature-count="3"');
+		expect(svg).toContain('rx="64"');
+		expect(svg).toMatch(/data-expression="[0-3]"/);
+		expect(svg.match(/data-eye=/g)).toHaveLength(2);
+		expect(svg).toMatch(/data-mouth="(smile|open|smirk|neutral)"/);
+		expect(svg).toMatch(/data-portrait-plane="(left|right)"/);
+		expect(svg).not.toContain("data-brow");
+		expect(svg).not.toContain("data-pupil");
+		expect(svg).not.toContain("data-cheek");
+		expect(svg).not.toContain("data-nose");
+		expect(svg).not.toContain("<linearGradient");
+		expect(svg).not.toContain("<radialGradient");
+		expect(svg).not.toContain("<filter");
+		expect(svg).not.toContain("<text");
+	});
+
+	it("procedurally generates deterministic portrait faces from each seed", async () => {
+		const seeds = ["nova-river", "ember-cove", "pixel-vale", "tobias", "mira-slate", "orange-field"];
+		const svgs = await Promise.all(
+			seeds.map(async (seed) => readSvg(await SELF.fetch(`https://avatar.aspekt.systems/portrait/${seed}`))),
+		);
+		const repeatedSvg = await readSvg(await SELF.fetch("https://avatar.aspekt.systems/portrait/nova-river"));
+		const expressions = new Set(svgs.map((svg) => svg.match(/data-expression="(\d)"/)?.[1]));
+		const backgrounds = new Set(svgs.map((svg) => svg.match(/<rect width="128" height="128" fill="(#[0-9A-F]{6})"/)?.[1]));
+
+		expect(repeatedSvg).toBe(svgs[0]);
+		expect(new Set(svgs).size).toBe(seeds.length);
+		expect(expressions.size).toBeGreaterThan(1);
+		expect(backgrounds.size).toBeGreaterThan(1);
+	});
+
+	it("keeps initials legible on face avatar variants", async () => {
+		for (const variant of ["faces", "portrait"]) {
+			const svg = await readSvg(await SELF.fetch(`https://avatar.aspekt.systems/${variant}/nova-river?initials`));
+
+			expect(svg).toContain(">NR</text>");
+			expect(svg).toContain('<rect width="128" height="128" fill="#000000" opacity="0.28"/>');
+		}
 	});
 
 	it("supports grid variant URLs as an 8 by 8 tile avatar", async () => {
