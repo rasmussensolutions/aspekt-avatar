@@ -1,4 +1,4 @@
-type Variant = 'aurora' | 'bloom' | 'crystal' | 'faces' | 'glass' | 'gradient' | 'grid' | 'orbit' | 'portrait' | 'ribbons' | 'shapes' | 'solid' | 'triangles';
+type Variant = 'aurora' | 'bloom' | 'crystal' | 'faces' | 'glass' | 'gradient' | 'grid' | 'orbit' | 'portrait' | 'ribbons' | 'shapes' | 'signal' | 'solid' | 'triangles';
 
 type SolidPalette = {
 	background: string;
@@ -70,7 +70,15 @@ type PortraitPalette = {
 	foreground: string;
 };
 
-const variants = ['aurora', 'bloom', 'crystal', 'faces', 'glass', 'gradient', 'grid', 'orbit', 'portrait', 'ribbons', 'shapes', 'solid', 'triangles'] as const satisfies readonly Variant[];
+type SignalPalette = {
+	light: string;
+	shade: string;
+	line: string;
+	bar: string;
+	foreground: string;
+};
+
+const variants = ['aurora', 'bloom', 'crystal', 'faces', 'glass', 'gradient', 'grid', 'orbit', 'portrait', 'ribbons', 'shapes', 'signal', 'solid', 'triangles'] as const satisfies readonly Variant[];
 
 const solidPalettes = [
 	{ background: '#E7C269', foreground: '#6F4700', accent: '#F2B94B' },
@@ -83,17 +91,26 @@ const solidPalettes = [
 	{ background: '#FFB0BE', foreground: '#8B1630', accent: '#FF7A96' },
 ] as const satisfies readonly SolidPalette[];
 
+// Each palette separates a saturated base, deep shadow, and bright highlight.
 const gradientPalettes = [
-	{ base: '#35D1BE', primary: '#00686C', secondary: '#95F3D6', foreground: '#063A3D' },
-	{ base: '#FF9915', primary: '#00686C', secondary: '#32C2B9', foreground: '#FFFFFF' },
-	{ base: '#02C7AE', primary: '#005B61', secondary: '#85F2E0', foreground: '#FFFFFF' },
-	{ base: '#B8F28A', primary: '#34C3B3', secondary: '#F7F2A7', foreground: '#17443B' },
-	{ base: '#F6F4A8', primary: '#7CE7B2', secondary: '#38BDB0', foreground: '#264130' },
-	{ base: '#18D2AF', primary: '#007075', secondary: '#7BF5DE', foreground: '#043A3C' },
-	{ base: '#FFD21F', primary: '#FF9F1C', secondary: '#FFF6A8', foreground: '#513400' },
-	{ base: '#FFB000', primary: '#FF6F1A', secondary: '#FFE666', foreground: '#4A2600' },
-	{ base: '#FFE45C', primary: '#FFF5A8', secondary: '#F2F1B5', foreground: '#4C4300' },
-	{ base: '#FF9915', primary: '#00686C', secondary: '#FFE05C', foreground: '#FFFFFF' },
+	{ base: '#20CBB5', primary: '#003D50', secondary: '#C8FF89', foreground: '#FFFFFF' },
+	{ base: '#FF9915', primary: '#004D64', secondary: '#FFE878', foreground: '#FFFFFF' },
+	{ base: '#00B8AD', primary: '#073B52', secondary: '#86FFE1', foreground: '#FFFFFF' },
+	{ base: '#B4E84E', primary: '#006556', secondary: '#FFF3A0', foreground: '#17443B' },
+	{ base: '#FFD21F', primary: '#A83A0B', secondary: '#FFF6B0', foreground: '#513400' },
+	{ base: '#FF7D26', primary: '#792541', secondary: '#FFE666', foreground: '#FFFFFF' },
+	{ base: '#3979F6', primary: '#101D63', secondary: '#78F3EC', foreground: '#FFFFFF' },
+	{ base: '#7860EA', primary: '#29124F', secondary: '#FFC0E8', foreground: '#FFFFFF' },
+	{ base: '#F35399', primary: '#651650', secondary: '#FFD99A', foreground: '#FFFFFF' },
+	{ base: '#E95349', primary: '#661C39', secondary: '#FFCC75', foreground: '#FFFFFF' },
+	{ base: '#17BADD', primary: '#123968', secondary: '#BAFFB9', foreground: '#FFFFFF' },
+	{ base: '#9450DA', primary: '#30216C', secondary: '#8FF5D1', foreground: '#FFFFFF' },
+	{ base: '#F33A65', primary: '#311451', secondary: '#FFA55A', foreground: '#FFFFFF' },
+	{ base: '#2C50E4', primary: '#121B3D', secondary: '#CBA5FF', foreground: '#FFFFFF' },
+	{ base: '#D2D943', primary: '#163F44', secondary: '#F9F2CF', foreground: '#17443B' },
+	{ base: '#E87EAD', primary: '#49318C', secondary: '#A4EAFF', foreground: '#FFFFFF' },
+	{ base: '#1EAE7F', primary: '#0C3048', secondary: '#F9CD65', foreground: '#FFFFFF' },
+	{ base: '#FC793D', primary: '#412889', secondary: '#FFC1CB', foreground: '#FFFFFF' },
 ] as const satisfies readonly GradientPalette[];
 
 const trianglePalettes = [
@@ -178,6 +195,16 @@ const portraitPalettes = [
 	{ background: '#F7B6DE', plane: '#A768E8', ink: '#4A235E', accent: '#FFF7FC', foreground: '#FFFFFF' },
 	{ background: '#8D91F4', plane: '#43D6D0', ink: '#172354', accent: '#FFFFFF', foreground: '#FFFFFF' },
 ] as const satisfies readonly PortraitPalette[];
+
+const signalPalettes = [
+	{ light: '#FFF5B3', shade: '#FFE56D', line: '#FFD635', bar: '#FFCA05', foreground: '#FFFFFF' },
+	{ light: '#DBFAFF', shade: '#91E6F4', line: '#4BC9E8', bar: '#00A9D7', foreground: '#FFFFFF' },
+	{ light: '#F4E8FF', shade: '#CDA8F6', line: '#AA76E8', bar: '#8C4CD9', foreground: '#FFFFFF' },
+	{ light: '#E7FFE7', shade: '#ACEFC0', line: '#71D99A', bar: '#38BD78', foreground: '#FFFFFF' },
+	{ light: '#FFE6E4', shade: '#FFADA8', line: '#FF7D7F', bar: '#F35168', foreground: '#FFFFFF' },
+	{ light: '#FFF0DA', shade: '#FFD09A', line: '#FFAB5C', bar: '#F58130', foreground: '#FFFFFF' },
+	{ light: '#DFFCF5', shade: '#9DE9D7', line: '#5BCDBA', bar: '#16A995', foreground: '#FFFFFF' },
+] as const satisfies readonly SignalPalette[];
 
 const gridColors = ['#00686c', '#ff9915', '#32c2b9', '#edecb3', '#fad928'] as const;
 
@@ -322,12 +349,12 @@ function createDocsResponse(origin: string): Response {
 			},
 			{
 				name: 'gradient',
-				description: 'Soft abstract gradient shapes generated from the seed.',
+				description: 'Smooth color fields with contrasting palettes and varied seeded compositions.',
 				default_for_seed_urls: true,
 			},
 			{
 				name: 'glass',
-				description: 'Glossy gradient avatar with a diagonal sheen and reflective border.',
+				description: 'Glossy contrasting gradients with seed-specific lighting and a reflective border.',
 			},
 			{
 				name: 'solid',
@@ -352,6 +379,10 @@ function createDocsResponse(origin: string): Response {
 			{
 				name: 'shapes',
 				description: 'Seeded geometric constructions with balanced symmetry, nested rings, and piece-specific gradients.',
+			},
+			{
+				name: 'signal',
+				description: 'Full-canvas fine horizontal lines and seeded rectangular signal bars, with color palettes selected by seed. Use radius=full for a circular avatar.',
 			},
 			{
 				name: 'triangles',
@@ -401,6 +432,7 @@ function createDocsResponse(origin: string): Response {
 			`${origin}/portrait/nova-river?size=256&radius=full`,
 			`${origin}/ribbons/nova-river?size=256&radius=full`,
 			`${origin}/shapes/nova-river?size=256&radius=full`,
+			`${origin}/signal/nova-river?size=256&radius=full`,
 			`${origin}/triangles/nova-river?size=256&radius=full`,
 		],
 	} as const;
@@ -441,6 +473,7 @@ function createAvatarSvg(options: {
 			variant === 'portrait' ||
 			variant === 'ribbons' ||
 			variant === 'shapes' ||
+			variant === 'signal' ||
 			variant === 'triangles');
 	const textOverlay = needsTextOverlay ? `<rect width="${size}" height="${size}" fill="#000000" opacity="0.28"/>` : '';
 	const text = showInitials
@@ -506,6 +539,8 @@ function createPaint(
 			return createRibbonsPaint(size, hash, id);
 		case 'shapes':
 			return createShapesPaint(size, hash, id);
+		case 'signal':
+			return createSignalPaint(size, hash, id);
 		case 'solid':
 			return createSolidPaint(size, hash);
 		case 'triangles':
@@ -1299,26 +1334,54 @@ function createSolidPaint(size: number, hash: number): { background: string; for
 }
 
 function createGradientPaint(size: number, hash: number, id: string): { background: string; foreground: string; defs: string; layers: string } {
-	const palette = pickFrom(gradientPalettes, hash >>> 4);
-	const scale = size / 80;
-	const firstRotation = readNumber(hash, 8, -320, 320);
-	const secondRotation = readNumber(hash, 16, -320, 320);
-	const firstX = readNumber(hash, 4, -8, 8);
-	const firstY = readNumber(hash, 12, -8, 8);
-	const secondX = readNumber(hash, 20, -8, 8);
-	const secondY = readNumber(hash, 24, -8, 8);
+	const random = createDeterministicRandom(hash ^ 0x47ad1e);
+	const palette = pickFrom(gradientPalettes, randomInteger(random, 0, gradientPalettes.length - 1));
+	// Different field arrangements keep variation visible even when seeds share a palette.
+	const compositions = [
+		[[8, 14, 72, 58], [76, 72, 62, 68]],
+		[[0, 0, 64, 60], [80, 18, 58, 50], [38, 88, 70, 55]],
+		[[40, 38, 44, 48], [86, 76, 58, 65]],
+		[[40, -4, 88, 30], [40, 72, 90, 34], [-12, 38, 45, 50]],
+		[[-8, 40, 60, 90], [86, 40, 58, 90], [40, 88, 40, 48]],
+	] as const;
+	const composition = randomInteger(random, 0, compositions.length - 1);
+	const rotation = formatSvgNumber(randomBetween(random, 0, 360));
+	const colors = [palette.secondary, palette.base, palette.primary];
+	const colorOffset = randomInteger(random, 0, 2);
+	const baseStart = colors[(colorOffset + 2) % 3];
+	const baseEnd = colors[(colorOffset + 1) % 3];
+	const defs: string[] = [
+		`<linearGradient id="${id}-field-base" x1="0%" y1="0%" x2="100%" y2="100%" gradientTransform="rotate(${rotation} .5 .5)">
+      <stop offset="0%" stop-color="${baseStart}"/>
+      <stop offset="100%" stop-color="${baseEnd}"/>
+    </linearGradient>`,
+	];
+	const fields = compositions[composition].map(([x, y, rx, ry], index) => {
+		const fieldId = `${id}-field-${index}`;
+		const color = colors[(colorOffset + index) % 3];
+		const centerX = formatSvgNumber(x + randomBetween(random, -8, 8));
+		const centerY = formatSvgNumber(y + randomBetween(random, -8, 8));
+		const radiusX = formatSvgNumber(rx * randomBetween(random, 0.85, 1.18));
+		const radiusY = formatSvgNumber(ry * randomBetween(random, 0.85, 1.18));
+		defs.push(`<radialGradient id="${fieldId}">
+      <stop offset="0%" stop-color="${color}" stop-opacity="1"/>
+      <stop offset="25%" stop-color="${color}" stop-opacity="0.95"/>
+      <stop offset="55%" stop-color="${color}" stop-opacity="0.6"/>
+      <stop offset="80%" stop-color="${color}" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+    </radialGradient>`);
+		return `<ellipse cx="${centerX}" cy="${centerY}" rx="${radiusX}" ry="${radiusY}" fill="url(#${fieldId})"/>`;
+	});
 
 	return {
-		background: palette.base,
+		background: `url(#${id}-field-base)`,
 		foreground: palette.foreground,
-		defs: `<filter id="${id}-blur" filterUnits="userSpaceOnUse" x="-20" y="-20" width="120" height="120" color-interpolation-filters="sRGB">
-      <feGaussianBlur stdDeviation="7"/>
-    </filter>`,
-		layers: `
-  <g transform="scale(${scale})">
-    <path filter="url(#${id}-blur)" d="M32.414 59.35L50.376 70.5H72.5v-71H33.728L26.5 13.381l19.057 27.08L32.414 59.35z" fill="${palette.primary}" transform="translate(${firstX} ${firstY}) rotate(${firstRotation} 40 40) scale(1.2)"/>
-    <path filter="url(#${id}-blur)" d="M22.216 24L0 46.75l14.108 38.129L78 86l-3.081-59.276-22.378 4.005 12.972 20.186-23.35 27.395L22.216 24z" fill="${palette.secondary}" transform="translate(${secondX} ${secondY}) rotate(${secondRotation} 40 40) scale(1.2)" style="mix-blend-mode: overlay"/>
-  </g>`.trim(),
+		defs: defs.join('\n    '),
+		layers: `<g data-composition="${composition}" transform="scale(${size / 80})">
+    <g transform="rotate(${rotation} 40 40)">
+      ${fields.join('\n      ')}
+    </g>
+  </g>`,
 	};
 }
 
@@ -1332,40 +1395,47 @@ function createGlassPaint(
 	const borderWidth = Math.max(1, Math.round(size * 0.024));
 	const borderInset = borderWidth / 2;
 	const borderRadius = Math.max(0, radius - borderInset);
+	const random = createDeterministicRandom(hash ^ 0x61a55);
+	const lightAngle = randomBetween(random, 0, Math.PI * 2);
+	const lightX = formatSvgNumber(50 + Math.cos(lightAngle) * 48);
+	const lightY = formatSvgNumber(50 + Math.sin(lightAngle) * 48);
+	const oppositeX = formatSvgNumber(100 - Number(lightX));
+	const oppositeY = formatSvgNumber(100 - Number(lightY));
+	const lightAxis = `x1="${lightX}%" y1="${lightY}%" x2="${oppositeX}%" y2="${oppositeY}%"`;
+	const glowRadius = formatSvgNumber(randomBetween(random, 48, 68));
 
 	return {
 		background: gradient.background,
 		foreground: gradient.foreground,
 		defs: `${gradient.defs}
-    <linearGradient id="${id}-glass-shade" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#000000" stop-opacity="0.1"/>
-      <stop offset="50%" stop-color="#000000" stop-opacity="0.18"/>
-      <stop offset="100%" stop-color="#000000" stop-opacity="0.3"/>
+    <linearGradient id="${id}-glass-shade" ${lightAxis}>
+      <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#000000" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.32"/>
     </linearGradient>
-    <linearGradient id="${id}-glass-sheen" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.88"/>
-      <stop offset="28%" stop-color="#FFFFFF" stop-opacity="0.48"/>
-      <stop offset="62%" stop-color="#FFFFFF" stop-opacity="0.16"/>
-      <stop offset="84%" stop-color="#FFFFFF" stop-opacity="0.05"/>
+    <linearGradient id="${id}-glass-sheen" ${lightAxis}>
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.62"/>
+      <stop offset="22%" stop-color="#FFFFFF" stop-opacity="0.24"/>
+      <stop offset="43%" stop-color="#FFFFFF" stop-opacity="0.12"/>
+      <stop offset="47%" stop-color="#FFFFFF" stop-opacity="0"/>
       <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
     </linearGradient>
-    <radialGradient id="${id}-glass-glow" cx="12%" cy="10%" r="94%" fx="4%" fy="4%">
-      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.86"/>
-      <stop offset="24%" stop-color="#FFFFFF" stop-opacity="0.5"/>
-      <stop offset="55%" stop-color="#FFFFFF" stop-opacity="0.18"/>
-      <stop offset="82%" stop-color="#FFFFFF" stop-opacity="0.05"/>
+    <radialGradient id="${id}-glass-glow" cx="${lightX}%" cy="${lightY}%" r="${glowRadius}%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.7"/>
+      <stop offset="30%" stop-color="#FFFFFF" stop-opacity="0.2"/>
+      <stop offset="65%" stop-color="#FFFFFF" stop-opacity="0.04"/>
       <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="${id}-glass-depth" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="${id}-glass-depth" ${lightAxis}>
       <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
       <stop offset="58%" stop-color="#000000" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#000000" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.24"/>
     </linearGradient>
-    <linearGradient id="${id}-glass-border" x1="0" y1="0" x2="${size}" y2="${size}" gradientUnits="userSpaceOnUse">
+    <linearGradient id="${id}-glass-border" ${lightAxis}>
       <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.98"/>
-      <stop offset="24%" stop-color="#FFFFFF" stop-opacity="0.82"/>
-      <stop offset="58%" stop-color="#FFFFFF" stop-opacity="0.3"/>
-      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.08"/>
+      <stop offset="24%" stop-color="#FFFFFF" stop-opacity="0.7"/>
+      <stop offset="58%" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.06"/>
     </linearGradient>`,
 		layers: `${gradient.layers}
     <rect width="${size}" height="${size}" fill="url(#${id}-glass-shade)"/>
@@ -1428,6 +1498,71 @@ function createTrianglePoints(x: number, y: number, size: number, direction: num
 		default:
 			return `${x},${y} ${x + size},${y + size} ${x},${y + size}`;
 	}
+}
+
+function createSignalPaint(size: number, hash: number, id: string): { background: string; foreground: string; defs: string; layers: string } {
+	const random = createDeterministicRandom(hashString(`${hash}:signal`));
+	const palette = signalPalettes[randomInteger(random, 0, signalPalettes.length - 1)];
+	const rowCount = randomInteger(random, 15, 17);
+	const centerX = randomBetween(random, 43, 51);
+	const rightX = randomBetween(random, 83, 91);
+	const leftX = randomBetween(random, -5, 8);
+	const mirror = random() < 0.25;
+	const rows: string[] = [];
+	const rectangle = (x: number, y: number, width: number, height: number, fill: string, opacity = 1, kind = 'segment') =>
+		`<rect data-signal-${kind}="true" x="${formatSvgNumber(x)}" y="${formatSvgNumber(y - height / 2)}" width="${formatSvgNumber(width)}" height="${formatSvgNumber(height)}" fill="${fill}" fill-opacity="${formatSvgNumber(opacity)}"/>`;
+
+	for (let index = 0; index < rowCount; index++) {
+		const progress = index / (rowCount - 1);
+		const y = 3 + progress * 122 + randomBetween(random, -0.5, 0.5);
+		const leftEnd = randomBetween(random, 48, 64);
+		const rightStart = randomBetween(random, 75, 88);
+		const segments = [
+			rectangle(0, y, leftEnd, randomBetween(random, 1.15, 2.35), palette.line, 0.77),
+			rectangle(leftEnd, y, rightStart - leftEnd, randomBetween(random, 0.35, 0.8), palette.line, 0.52),
+			rectangle(rightStart, y, 128 - rightStart, randomBetween(random, 1.1, 2.25), palette.line, 0.74),
+		];
+		let barX: number;
+		let barWidth: number;
+
+		if (progress < 0.2) {
+			barX = centerX + randomBetween(random, -3, 3);
+			barWidth = randomBetween(random, 9, 27);
+		} else if (progress < 0.57) {
+			barX = rightX + randomBetween(random, -3.5, 3.5);
+			barWidth = randomBetween(random, 23, 38);
+		} else if (progress < 0.86) {
+			barX = leftX + randomBetween(random, -3, 3);
+			barWidth = randomBetween(random, 18, 39) * (1 - (progress - 0.57) * 0.8);
+		} else {
+			barX = centerX + randomBetween(random, -5, 5);
+			barWidth = randomBetween(random, 7, 23);
+		}
+
+		const barHeight = randomBetween(random, 3, 7.4);
+		segments.push(rectangle(barX, y, barWidth, barHeight, palette.bar, 1, 'bar'));
+
+		if ((progress > 0.13 && progress < 0.23) || (progress > 0.55 && progress < 0.68)) {
+			const accentX = progress < 0.3 ? rightX + randomBetween(random, 0, 8) : rightX + randomBetween(random, -6, 5);
+			segments.push(rectangle(accentX, y, randomBetween(random, 7, 14), randomBetween(random, 3, 6), palette.bar, 1, 'bar'));
+		}
+
+		rows.push(`<g data-signal-row="${index}"${mirror ? ' transform="translate(128 0) scale(-1 1)"' : ''}>
+        ${segments.join('\n        ')}
+      </g>`);
+	}
+
+	return {
+		background: `url(#${id}-signal-field)`,
+		foreground: palette.foreground,
+		defs: `<radialGradient id="${id}-signal-field" cx="48%" cy="50%" r="72%">
+      <stop offset="0%" stop-color="${palette.light}"/>
+      <stop offset="100%" stop-color="${palette.shade}"/>
+	    </radialGradient>`,
+		layers: `<g data-generated="signal" data-rows="${rowCount}" transform="scale(${formatSvgNumber(size / 128)})">
+	  ${rows.join('\n      ')}
+    </g>`,
+	};
 }
 
 function createGridPaint(size: number, hash: number): { background: string; foreground: string; defs: string; layers: string } {

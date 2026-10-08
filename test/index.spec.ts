@@ -56,6 +56,7 @@ describe("avatar worker", () => {
 			"portrait",
 			"ribbons",
 			"shapes",
+			"signal",
 			"triangles",
 		]);
 		expect(queryParameters).toHaveProperty("size");
@@ -71,7 +72,45 @@ describe("avatar worker", () => {
 		expect(examples).toContain("https://avatar.aspekt.systems/portrait/nova-river?size=256&radius=full");
 		expect(examples).toContain("https://avatar.aspekt.systems/ribbons/nova-river?size=256&radius=full");
 		expect(examples).toContain("https://avatar.aspekt.systems/shapes/nova-river?size=256&radius=full");
+		expect(examples).toContain("https://avatar.aspekt.systems/signal/nova-river?size=256&radius=full");
 		expect(examples).toContain("https://avatar.aspekt.systems/triangles/nova-river?size=256&radius=full");
+	});
+
+	it("fills the canvas with repeatable signal bars and seeded colors", async () => {
+		const seeds = ["nova-river", "ember-cove", "pixel-vale", "tobias", "mira-slate", "orange-field"];
+		const svgs = await Promise.all(seeds.map(async (seed) => readSvg(await SELF.fetch(`https://avatar.aspekt.systems/signal/${seed}`))));
+		const repeated = await readSvg(await SELF.fetch("https://avatar.aspekt.systems/signal/nova-river"));
+		const colors = new Set(svgs.map((svg) => svg.match(/<stop offset="0%" stop-color="(#[0-9A-F]{6})"/)?.[1]));
+
+		expect(repeated).toBe(svgs[0]);
+		expect(new Set(svgs).size).toBe(seeds.length);
+		expect(colors.size).toBeGreaterThan(1);
+		expect(svgs[0]).toContain('data-generated="signal"');
+		expect(svgs[0]).toContain('rx="0"');
+		expect(svgs[0]).toContain('width="128" height="128" fill="url(#avatar-signal-');
+		const rowCount = svgs[0].match(/data-signal-row=/g)?.length ?? 0;
+		const barHeights = [...svgs[0].matchAll(/data-signal-bar="true"[^>]*height="([\d.]+)"/g)].map((match) => Number(match[1]));
+		expect(rowCount).toBeGreaterThanOrEqual(15);
+		expect(rowCount).toBeLessThanOrEqual(17);
+		expect(svgs[0].match(/data-signal-segment=/g)).toHaveLength(rowCount * 3);
+		expect(barHeights.length).toBeGreaterThanOrEqual(rowCount);
+		expect(Math.max(...barHeights) - Math.min(...barHeights)).toBeGreaterThan(2);
+		expect(svgs[0]).not.toContain("<circle");
+		expect(svgs[0]).not.toContain("<text");
+	});
+
+	it("uses radius to round the full signal canvas", async () => {
+		const svg = await readSvg(await SELF.fetch("https://avatar.aspekt.systems/signal/nova-river?radius=full"));
+
+		expect(svg).toContain('rx="64"');
+		expect(svg).not.toContain("<circle");
+	});
+
+	it("supports initials on signal avatars", async () => {
+		const svg = await readSvg(await SELF.fetch("https://avatar.aspekt.systems/signal/nova-river?initials"));
+
+		expect(svg).toContain(">NR</text>");
+		expect(svg).toContain('<rect width="128" height="128" fill="#000000" opacity="0.28"/>');
 	});
 
 	it("serves a centered dark HTML preview for browser tab requests", async () => {
@@ -117,10 +156,10 @@ describe("avatar worker", () => {
 		expect(svg).toContain('aria-label="mira-slate"');
 		expect(svg).toContain("<title>mira-slate (128x128)</title>");
 		expect(svg).toContain('rx="0"');
-		expect(svg).toContain("<filter");
-		expect(svg).toContain("<feGaussianBlur");
-		expect(svg).toContain("<path");
-		expect(svg).not.toContain("<linearGradient");
+		expect(svg).toContain("<radialGradient");
+		expect(svg).not.toContain("<feGaussianBlur");
+		expect(svg).toContain("<ellipse");
+		expect(svg).toContain("<linearGradient");
 		expect(svg).not.toContain("<circle");
 		expect(svg).not.toContain("<text");
 	});
@@ -129,7 +168,7 @@ describe("avatar worker", () => {
 		const response = await SELF.fetch("https://avatar.aspekt.systems/mira-slate?initials");
 		const svg = await readSvg(response);
 
-		expect(svg).toContain("<filter");
+		expect(svg).toContain("<radialGradient");
 		expect(svg).toContain(">MS</text>");
 	});
 
@@ -139,13 +178,14 @@ describe("avatar worker", () => {
 
 		expect(svg).toContain('aria-label="nova-river"');
 		expect(svg).toContain("<title>nova-river (128x128)</title>");
-		expect(svg).toContain("<filter");
-		expect(svg).toContain("<feGaussianBlur");
-		expect(svg).toContain("<path");
-		expect(svg).toContain("mix-blend-mode: overlay");
+		expect(svg).not.toContain("<filter");
+		expect(svg).not.toContain("<feGaussianBlur");
+		expect(svg).toContain("<ellipse");
+		expect(svg).not.toContain("<path");
+		expect(svg).not.toContain("mix-blend-mode: overlay");
 		expect(svg).toContain('rx="0"');
-		expect(svg).not.toContain("<linearGradient");
-		expect(svg).not.toContain("<radialGradient");
+		expect(svg).toContain("<linearGradient");
+		expect(svg).toContain("<radialGradient");
 		expect(svg).not.toContain("<text");
 	});
 
@@ -154,8 +194,9 @@ describe("avatar worker", () => {
 		const svg = await readSvg(response);
 
 		expect(svg).toContain('aria-label="nova-river"');
-		expect(svg).toContain("<filter");
-		expect(svg).toContain("<path");
+		expect(svg).not.toContain("<filter");
+		expect(svg).toContain("<ellipse");
+		expect(svg).not.toContain("<path");
 		expect(svg).toContain("<linearGradient");
 		expect(svg).toContain("<radialGradient");
 		expect(svg).toContain("glass-shade");
@@ -163,9 +204,9 @@ describe("avatar worker", () => {
 		expect(svg).toContain("glass-glow");
 		expect(svg).toContain("glass-depth");
 		expect(svg).toContain("glass-border");
-		expect(svg).toContain('stop-opacity="0.88"');
-		expect(svg).toContain('stop-opacity="0.86"');
-		expect(svg).toContain('stop-opacity="0.3"');
+		expect(svg).toContain('stop-opacity="0.62"');
+		expect(svg).toContain('stop-opacity="0.7"');
+		expect(svg).toContain('stop-opacity="0.32"');
 		expect(svg).toContain('stop-opacity="0.98"');
 		expect(svg).toContain('fill="none" stroke="url(#avatar-glass-');
 		expect(svg.match(/stroke="url\(#avatar-glass-/g)).toHaveLength(1);
@@ -176,6 +217,26 @@ describe("avatar worker", () => {
 		expect(svg).not.toContain("glass-streak");
 		expect(svg).not.toContain("<polygon");
 		expect(svg).not.toContain("<text");
+	});
+
+	it("keeps smooth gradient and glass compositions repeatable across sizes with broad seed variation", async () => {
+		for (const variant of ["gradient", "glass"]) {
+			const svgs = await Promise.all(Array.from({ length: 64 }, async (_, index) =>
+				readSvg(await SELF.fetch(`https://avatar.aspekt.systems/${variant}/sample-${index}`)),
+			));
+			const repeated = await readSvg(await SELF.fetch(`https://avatar.aspekt.systems/${variant}/sample-0`));
+			const large = await readSvg(await SELF.fetch(`https://avatar.aspekt.systems/${variant}/sample-0?size=512`));
+			const ellipses = (svg: string) => [...svg.matchAll(/<ellipse cx="[^>]+/g)].map((match) => match[0].split(' fill=')[0]);
+			const colorFamilies = new Set(svgs.map((svg) => svg.match(/field-base"[^>]*>\s*<stop offset="0%" stop-color="([^"]+)"/)?.[1]));
+			const compositions = new Set(svgs.map((svg) => svg.match(/data-composition="(\d+)"/)?.[1]));
+
+			expect(repeated).toBe(svgs[0]);
+			expect(ellipses(large)).toEqual(ellipses(svgs[0]));
+			expect(ellipses(large).length).toBeGreaterThanOrEqual(2);
+			expect(large).toContain('transform="scale(6.4)"');
+			expect(colorFamilies.size).toBeGreaterThanOrEqual(12);
+			expect(compositions.size).toBe(5);
+		}
 	});
 
 	it("supports faces variant URLs as glossy full-surface characters with minimal eyes", async () => {
